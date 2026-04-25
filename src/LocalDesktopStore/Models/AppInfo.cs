@@ -13,7 +13,7 @@ public sealed class AppInfo
     public ArtifactKind Kind { get; set; } = ArtifactKind.Unknown;
     public string? Sha256Url { get; set; }
     public DateTimeOffset? PublishedAt { get; set; }
-    public string? IconUrl { get; set; }
+    public IReadOnlyList<string> IconCandidates { get; set; } = Array.Empty<string>();
     public int Stars { get; set; }
     public string? Topics { get; set; }
 

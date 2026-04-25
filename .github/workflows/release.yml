@@ -37,6 +37,18 @@ jobs:
       - name: Restore
         run: dotnet restore src/LocalDesktopStore/LocalDesktopStore.csproj
 
+      - name: OSV-Scanner (fail on any advisory)
+        shell: pwsh
+        run: |
+          $ver = "1.9.1"
+          $url = "https://github.com/google/osv-scanner/releases/download/v$ver/osv-scanner_windows_amd64.exe"
+          Invoke-WebRequest -Uri $url -OutFile osv-scanner.exe -UseBasicParsing
+          # OSV-Scanner exits non-zero (1) when any vulnerability is found.
+          # We scan the restored project; lockfiles + project.assets.json cover the
+          # full transitive NuGet graph (Octokit, Microsoft.Win32.Registry, etc.).
+          .\osv-scanner.exe --recursive --skip-git ./src
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
       - name: Publish (framework-dependent, win-x64)
         run: |
           dotnet publish src/LocalDesktopStore/LocalDesktopStore.csproj `

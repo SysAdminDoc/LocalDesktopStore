@@ -356,7 +356,7 @@
                            Text="{Binding StatusText}"
                            Style="{StaticResource SubtleText}" />
                 <TextBlock Grid.Column="1" Style="{StaticResource MuteText}">
-                    <Run Text="LocalDesktopStore v0.1.0" />
+                    <Run Text="LocalDesktopStore v0.2.0-alpha" />
                 </TextBlock>
             </Grid>
         </Border>

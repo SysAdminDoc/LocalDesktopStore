@@ -14,13 +14,13 @@ public sealed class GitHubService
     public GitHubService()
     {
         _http = new HttpClient();
-        _http.DefaultRequestHeaders.UserAgent.ParseAdd("LocalDesktopStore/0.1");
+        _http.DefaultRequestHeaders.UserAgent.ParseAdd("LocalDesktopStore/0.2");
     }
 
     private GitHubClient GetClient(AppSettings cfg)
     {
         if (_client != null && _activeToken == cfg.GitHubToken) return _client;
-        var product = new ProductHeaderValue("LocalDesktopStore", "0.1.0");
+        var product = new ProductHeaderValue("LocalDesktopStore", "0.2.0-alpha");
         var c = new GitHubClient(product);
         if (!string.IsNullOrWhiteSpace(cfg.GitHubToken))
             c.Credentials = new Credentials(cfg.GitHubToken);
@@ -119,16 +119,23 @@ public sealed class GitHubService
             Kind = best.Kind,
             Sha256Url = sidecar?.BrowserDownloadUrl,
             PublishedAt = release.PublishedAt,
-            IconUrl = ResolveIconUrl(repo)
+            IconCandidates = ResolveIconCandidates(repo)
         };
         return info;
     }
 
-    private static string ResolveIconUrl(Repository repo)
+    private static IReadOnlyList<string> ResolveIconCandidates(Repository repo)
     {
-        // Convention: the user ships logo.png at repo root for every project; fall back to GitHub OG image.
-        // We don't HEAD-probe here — the icon loader retries gracefully on 404.
-        return $"https://raw.githubusercontent.com/{repo.Owner.Login}/{repo.Name}/HEAD/logo.png";
+        var owner = repo.Owner.Login;
+        var name = repo.Name;
+        var raw = $"https://raw.githubusercontent.com/{owner}/{name}/HEAD";
+        return new[]
+        {
+            $"{raw}/logo.png",
+            $"{raw}/banner.png",
+            $"{raw}/icon.png",
+            $"https://opengraph.githubassets.com/1/{owner}/{name}"
+        };
     }
 
     public async Task DownloadAssetToFileAsync(string url, string destination, IProgress<long>? progress = null, CancellationToken ct = default)

@@ -4,7 +4,7 @@ _Last revised 2026-04-25. Reconciled from research-driven competitive sweep — 
 
 ## State of the repo
 
-- **Today (v0.1.0)**: WPF / .NET 9 catalog UI sourcing apps from one or more GitHub accounts. Asset classifier routes MSI / Inno / NSIS / generic EXE / portable ZIP. Install-state detection runs as a registry diff across `HKLM`, `HKLM\WOW6432Node`, and `HKCU` uninstall keys. SHA-256 sidecar verification runs before the installer fires. Activity log + crash log on disk. ~3,042 LOC, single dependency outside the framework (Octokit 13.0.1).
+- **Today (v0.2.0-alpha)**: WPF / .NET 9 catalog UI sourcing apps from one or more GitHub accounts. Asset classifier routes MSI / Inno / NSIS / generic EXE / portable ZIP. Install-state detection runs as a registry diff across `HKLM`, `HKLM\WOW6432Node`, and `HKCU` uninstall keys. SHA-256 sidecar verification runs before the installer fires. Activity log + crash log on disk. Slice-A groundwork landed: icon fallback chain (logo→banner→icon→OG), schema-versioned `installed.json` migrator, reproducible builds + SourceLink, Dependabot + OSV-Scanner CI. ~3,042 LOC, two direct dependencies (Octokit 13.0.1 + Microsoft.Win32.Registry 5.0) plus build-time `DotNet.ReproducibleBuilds` + `Microsoft.SourceLink.GitHub`.
 - **Hard constraints**: MIT, framework-dependent `net9.0-windows` only, no MVVM toolkit, no third-party UI library, no telemetry, no auto-elevation, Catppuccin Mocha aesthetic, sibling visual UX to LocalChromeStore.
 - **Closest competitor**: **UniGetUI 2026.1.6** (Devolutions, ~50 MB, MIT) — unifies WinGet/Scoop/Chocolatey/Pip/Npm/.NET Tool/PowerShell Gallery in one GUI [#1]. We are deliberately narrower than UniGetUI: GitHub-Releases-only, single source of truth, no public catalog dependency. The same shape exists in **GitHub Store** (Compose Multiplatform, OpenHub-Store) but with a fundamentally different architecture (Compose, no install-state pinning) [#2][#3].
 
@@ -18,6 +18,17 @@ The Now / Next / Later tiers below all map back to one of these themes:
 - **T4 · Operability** — accessibility, localization, scheduling, and headless modes so the app is usable beyond a single English-speaking sysadmin clicking buttons.
 - **T5 · Distribution** — winget-pkgs export, MSIX/`.appinstaller`, signed installer, GPO/Intune-aware deployment so LDS itself ships well into other people's machines.
 - **T6 · Cross-platform** — Avalonia path; Linux + macOS only when it carries weight, never as a marketing checkbox.
+
+---
+
+## Shipped — v0.2.0-alpha (2026-04-25)
+
+Slice A groundwork pass — additive only, sets up the safety net N1-N3 + N6 + N9 build on.
+
+- **N5 · Icon fallback chain** — `logo.png` → `banner.png` → `icon.png` → `opengraph.githubassets.com`.
+- **N7 · Schema-versioned `installed.json` migrator** — `IInstalledManifestMigrator` chain; refuses forward-rolled files instead of silently dropping fields.
+- **N8 · Reproducible builds + SourceLink** — `DotNet.ReproducibleBuilds 2.0.2` + `Microsoft.SourceLink.GitHub 8.0.0`, `ContinuousIntegrationBuild` + `EmbedUntrackedSources` + `PublishRepositoryUrl`.
+- **N13 · Dep-scanning CI** — Dependabot weekly (NuGet + Actions), security-patch auto-merge workflow, OSV-Scanner gate in `release.yml`.
 
 ---
 
@@ -52,39 +63,20 @@ Currently JSON-only edit. Add a multi-org list editor in the settings drawer + p
 - **Source:** UniGetUI feature list [#1], discussion #1444 [#7].
 - **Effort:** 3/5 — XAML and view-model only, no service-layer changes.
 
-### N5 · Repo OG-image / banner fallback for icons `[T3]`
-
-`GitHubService.ResolveIconUrl` only probes `logo.png` at repo root. Fall through to `banner.png`, `icon.png`, then to GitHub's OG image API (`https://opengraph.githubassets.com/<hash>/<owner>/<repo>`). Fewer "APP" placeholders.
-- **Source:** GitHub OG-image convention; observed across the user's own repos.
-- **Effort:** 2/5.
-
 ### N6 · Verify Authenticode signature and publisher pin `[T2]`
 
 After hash verification but before invoking the installer, call `WinVerifyTrust` (P/Invoke) on the downloaded `.exe` / `.msi` to confirm the file is signed and the certificate is in the Trusted Root Program. Pin the cert thumbprint or subject to the install record on first install; on re-install or update, refuse if the cert subject changed without explicit user approval. Mirrors the LocalAndroidStore signature pin model.
 - **Source:** SmartScreen reputation guidance [#8], SmartScreen + Authenticode hierarchy [#9].
 - **Effort:** 3/5 — `WinVerifyTrust` P/Invoke is well-documented; cert pinning fits naturally into `InstalledApp.UninstallRegistryKey` neighbours.
 - **Risk:** Some repos legitimately rotate signing identity (Sectigo OV → Trusted Signing). Surface as a warning prompt, not a hard block.
-- **Dependencies:** N7 (`InstalledApp` schema bump for `PublisherCertThumbprint`).
-
-### N7 · Schema-versioned `installed.json` with migration `[T1]`
-
-Today's manifest has `Version = 1` but no migrator. As records grow (cert thumbprint from N6, MSIX product family from later items), bumps must be migration-safe.
-- **Source:** standard practice; called out in research as a concrete pain point in package-manager state migration [#7].
-- **Effort:** 2/5.
-
-### N8 · DotNet.ReproducibleBuilds + SourceLink in csproj `[T2]`
-
-Add `DotNet.ReproducibleBuilds 2.0.2` (NuGet) and SourceLink so CI builds are bit-for-bit reproducible against tag commits, and stack traces from crash logs map back to source. Set `ContinuousIntegrationBuild=true` in the GitHub Actions workflow and `EmbedUntrackedSources=true`.
-- **Source:** [#10] DotNet.ReproducibleBuilds, [#11] dotnet/designs reproducible-builds.md, [#12] Meziantou's blog.
-- **Effort:** 1/5 — package + 4 properties.
-- **Impact:** Sets up SLSA L2 in N9 (verifiable provenance).
+- **Dependencies:** N7 (shipped — `InstalledApp` schema bump for `PublisherCertThumbprint` ships as a v1→v2 migrator).
 
 ### N9 · SLSA L2 build provenance attestations `[T2]`
 
 GitHub Actions has native attestation support via `actions/attest-build-provenance@v2`. Each release ZIP gets a Sigstore-signed in-toto provenance artifact attached, anchored to the `vX.Y.Z` tag commit SHA. Free; no certificate purchase. Supplements the existing SHA-256 sidecar.
 - **Source:** [#13] practical-software-supply-chain (Medium), [#14] Sigstore overview, [#11] dotnet/designs.
 - **Effort:** 2/5 — workflow YAML edit only.
-- **Dependencies:** N8.
+- **Dependencies:** N8 (shipped).
 
 ### N10 · Per-card error inline + crash-log link `[T4]`
 
@@ -97,12 +89,6 @@ The card already has an `ErrorMessage` field but install failures only land in t
 Every interactive control gets a deliberate `AutomationProperties.Name` (icons currently announce as "custom"). The activity log gets `AutomationProperties.LiveSetting="Polite"` so Narrator announces install / uninstall events without needing focus. .NET 4.8 already removed collapsed/hidden elements from the UIA tree, so only positive work is required.
 - **Source:** [#15] WPF accessibility — Microsoft Learn, [#16] .NET accessibility improvements MD.
 - **Effort:** 2/5.
-
-### N13 · Dependabot + OSV-Scanner in CI `[T2]`
-
-Add `.github/dependabot.yml` (NuGet ecosystem, weekly, auto-merge for security-only patch updates) and an OSV-Scanner job in the release workflow that fails the build on any High/Critical advisory affecting Octokit / `Microsoft.Win32.Registry` / `System.Text.Json` transitive deps. Catches the [.NET DoS CVE-2026-23666](https://msrc.microsoft.com/update-guide/vulnerability) class of issue before it ships.
-- **Source:** [#43] Microsoft Security Update Guide; [#13] supply-chain practices.
-- **Effort:** 1/5 — two YAML files.
 
 ### N12 · `winget validate`-able manifest export `[T5]`
 

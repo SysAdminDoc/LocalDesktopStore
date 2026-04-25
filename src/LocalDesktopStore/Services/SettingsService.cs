@@ -15,14 +15,19 @@ public sealed class SettingsService
     public string ManifestPath { get; }
     public string IconCacheDir { get; }
 
+    private readonly InstalledManifestMigrationRunner _manifestMigrator;
+
     private static readonly JsonSerializerOptions JsonOpts = new()
     {
         WriteIndented = true,
         DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
     };
 
-    public SettingsService()
+    public SettingsService() : this(InstalledManifestMigrationRunner.Default) { }
+
+    public SettingsService(InstalledManifestMigrationRunner manifestMigrator)
     {
+        _manifestMigrator = manifestMigrator;
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         SettingsDir = Path.Combine(appData, "LocalDesktopStore");
@@ -67,14 +72,10 @@ public sealed class SettingsService
 
     public InstalledAppsManifest LoadManifest()
     {
-        if (!File.Exists(ManifestPath)) return new InstalledAppsManifest();
-        try
-        {
-            var json = File.ReadAllText(ManifestPath);
-            return JsonSerializer.Deserialize<InstalledAppsManifest>(json, JsonOpts)
-                ?? new InstalledAppsManifest();
-        }
-        catch { return new InstalledAppsManifest(); }
+        if (!File.Exists(ManifestPath))
+            return new InstalledAppsManifest { Version = InstalledManifestMigrationRunner.CurrentSchemaVersion };
+        var json = File.ReadAllText(ManifestPath);
+        return _manifestMigrator.Load(json, JsonOpts);
     }
 
     public void SaveManifest(InstalledAppsManifest manifest)

@@ -9,19 +9,24 @@
     <LangVersion>latest</LangVersion>
     <AssemblyName>LocalDesktopStore</AssemblyName>
     <RootNamespace>LocalDesktopStore</RootNamespace>
-    <Version>0.1.0</Version>
-    <FileVersion>0.1.0.0</FileVersion>
-    <AssemblyVersion>0.1.0.0</AssemblyVersion>
+    <Version>0.2.0-alpha</Version>
+    <FileVersion>0.2.0.0</FileVersion>
+    <AssemblyVersion>0.2.0.0</AssemblyVersion>
     <Product>LocalDesktopStore</Product>
     <Company>SysAdminDoc</Company>
     <Copyright>Copyright (c) 2026 SysAdminDoc. MIT License.</Copyright>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <NoWarn>CA1416</NoWarn>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Octokit" Version="13.0.1" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
+    <PackageReference Include="DotNet.ReproducibleBuilds" Version="2.0.2" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
   </ItemGroup>
 
 </Project>

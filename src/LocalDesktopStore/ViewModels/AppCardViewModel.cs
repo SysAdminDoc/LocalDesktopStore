@@ -220,17 +220,27 @@ public sealed class AppCardViewModel : ViewModelBase
 
     private async Task LoadIconAsync()
     {
-        if (string.IsNullOrEmpty(Info.IconUrl)) return;
+        if (Info.IconCandidates.Count == 0) return;
         try
         {
             var cacheKey = $"{Info.RepoOwner}_{Info.RepoName}.png";
             var cachePath = Path.Combine(_settings.IconCacheDir, cacheKey);
             byte[]? bytes = null;
             if (File.Exists(cachePath))
+            {
                 bytes = await File.ReadAllBytesAsync(cachePath);
+            }
             else
             {
-                bytes = await _github.TryDownloadBytesAsync(Info.IconUrl!);
+                foreach (var url in Info.IconCandidates)
+                {
+                    var attempt = await _github.TryDownloadBytesAsync(url);
+                    if (attempt != null && attempt.Length > 0)
+                    {
+                        bytes = attempt;
+                        break;
+                    }
+                }
                 if (bytes != null) await File.WriteAllBytesAsync(cachePath, bytes);
             }
             if (bytes == null || bytes.Length == 0) return;
