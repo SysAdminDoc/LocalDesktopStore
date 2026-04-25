@@ -4,7 +4,7 @@ _Last revised 2026-04-25. Reconciled from research-driven competitive sweep — 
 
 ## State of the repo
 
-- **Today (v0.2.0-alpha)**: WPF / .NET 9 catalog UI sourcing apps from one or more GitHub accounts. Asset classifier routes MSI / Inno / NSIS / generic EXE / portable ZIP. Install-state detection runs as a registry diff across `HKLM`, `HKLM\WOW6432Node`, and `HKCU` uninstall keys. SHA-256 sidecar verification runs before the installer fires. Activity log + crash log on disk. Slice-A groundwork landed: icon fallback chain (logo→banner→icon→OG), schema-versioned `installed.json` migrator, reproducible builds + SourceLink, Dependabot + OSV-Scanner CI. ~3,042 LOC, two direct dependencies (Octokit 13.0.1 + Microsoft.Win32.Registry 5.0) plus build-time `DotNet.ReproducibleBuilds` + `Microsoft.SourceLink.GitHub`.
+- **Today (v0.2.0)**: WPF / .NET 9 catalog UI sourcing apps from one or more GitHub accounts. Asset classifier routes MSI / Inno / NSIS / generic EXE / portable ZIP. Install-state detection runs as a registry diff across `HKLM`, `HKLM\WOW6432Node`, and `HKCU` uninstall keys. SHA-256 sidecar verification runs before the installer fires. Activity log + crash log on disk. **Update lifecycle is live**: semver-aware update detection on refresh, "Update all" sequential bulk update, ETag-based conditional refresh (304s don't count against rate limit). Slice-A groundwork remains in place: icon fallback chain, schema-versioned `installed.json` migrator, reproducible builds + SourceLink, Dependabot + OSV-Scanner CI. Two direct dependencies (Octokit 13.0.1 + Microsoft.Win32.Registry 5.0) plus build-time `DotNet.ReproducibleBuilds` + `Microsoft.SourceLink.GitHub`.
 - **Hard constraints**: MIT, framework-dependent `net9.0-windows` only, no MVVM toolkit, no third-party UI library, no telemetry, no auto-elevation, Catppuccin Mocha aesthetic, sibling visual UX to LocalChromeStore.
 - **Closest competitor**: **UniGetUI 2026.1.6** (Devolutions, ~50 MB, MIT) — unifies WinGet/Scoop/Chocolatey/Pip/Npm/.NET Tool/PowerShell Gallery in one GUI [#1]. We are deliberately narrower than UniGetUI: GitHub-Releases-only, single source of truth, no public catalog dependency. The same shape exists in **GitHub Store** (Compose Multiplatform, OpenHub-Store) but with a fundamentally different architecture (Compose, no install-state pinning) [#2][#3].
 
@@ -21,6 +21,14 @@ The Now / Next / Later tiers below all map back to one of these themes:
 
 ---
 
+## Shipped — v0.2.0 (2026-04-25)
+
+Slice B — update lifecycle headline pass. Builds on the v0.2.0-alpha groundwork (N5 + N7 + N8 + N13).
+
+- **N1 · Update detection on refresh** — `Services/VersionCompare.cs` (semver-ish), wired through `IsUpdateAvailable` / `InstallButtonLabel`. Manifest is reloaded before the card collection rebuild so out-of-band installs surface immediately.
+- **N2 · "Update all" toolbar action** — `MainViewModel.UpdateAllCommand` runs a sequential `await` loop over outdated cards. Surfaces only when at least one app is outdated; labels itself with the count.
+- **N3 · ETag-based refresh** — `Services/EtagCachingHandler.cs` (DelegatingHandler) injected into Octokit via `HttpClientAdapter`. 304 short-circuit replays cached body, doesn't count against rate limit. Per-token cache so PAT rotation invalidates implicitly. Activity log reports the hit/miss tally per discover.
+
 ## Shipped — v0.2.0-alpha (2026-04-25)
 
 Slice A groundwork pass — additive only, sets up the safety net N1-N3 + N6 + N9 build on.
@@ -32,30 +40,9 @@ Slice A groundwork pass — additive only, sets up the safety net N1-N3 + N6 + N
 
 ---
 
-## Now — v0.2.0 (next 3 releases)
+## Now — v0.2.1 (next minor)
 
-Items here close the largest known gaps in v0.1.0. Each is in scope for the next minor cycle.
-
-### N1 · Update detection on refresh `[T1]`
-
-Compare each card's pinned `InstalledApp.Version` against the latest GitHub release tag and flip `IsUpdateAvailable` accordingly. Surface as the existing yellow `Update available` badge already in [src/LocalDesktopStore/Views/AppCardView.xaml](src/LocalDesktopStore/Views/AppCardView.xaml). UniGetUI [#1], Patch My PC [#4], GitHub Store [#3] all do this; doing it ourselves is table stakes.
-- **Source:** UniGetUI features [#1], Patch My PC Home Updater [#4], GitHub Store [#2].
-- **Effort:** 2/5 — version comparison + view-model wiring already exists; just needs the refresh path to actually recompute `_installed!.Version` against `Info.LatestVersion` after each `RefreshAsync`.
-- **Risk:** Tag formats vary (`v1.2.3`, `1.2.3-rc1`, date-driven). Use `SemanticVersion`-aware compare with fallback to ordinal.
-
-### N2 · "Update all" command + per-card "Update" button label `[T1]`
-
-After N1 ships, add an explicit `Update all` toolbar action and replace the "Reinstall" label on outdated cards with "Update to vX.Y.Z" (already partly wired in `AppCardViewModel.InstallButtonLabel`).
-- **Source:** UniGetUI bulk operations [#1], Patch My PC one-click outdated filter [#4].
-- **Effort:** 2/5.
-- **Dependencies:** N1.
-
-### N3 · ETag-based catalog refresh `[T1, T6]`
-
-Refresh today calls `client.Repository.GetAllForUser` + `Release.GetLatest` for every owner on every refresh. With one PAT and a dozen repos that's ~25 requests; without a PAT it eats half the 60 req/h public budget. Switch to conditional `If-None-Match` requests via Octokit's response-header capture or a thin `HttpClientHandler`. 304s do not count against rate limit per [#5].
-- **Source:** [#5] GitHub conditional requests, [#6] best practices for REST API.
-- **Effort:** 3/5 — Octokit 13 surfaces `ApiResponse<T>` with headers; needs a small response cache keyed by `(url, token)`.
-- **Risk:** Per-token cache (cache invalidates on PAT rotation, per [#5]).
+Items here close the remaining gaps from the original v0.2.0 scope.
 
 ### N4 · Settings UI for `ExtraOwners` and `HiddenRepos` `[T3]`
 

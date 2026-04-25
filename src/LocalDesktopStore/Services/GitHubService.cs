@@ -2,6 +2,7 @@ using System.IO;
 using System.Net.Http;
 using LocalDesktopStore.Models;
 using Octokit;
+using Octokit.Internal;
 
 namespace LocalDesktopStore.Services;
 
@@ -9,6 +10,7 @@ public sealed class GitHubService
 {
     private readonly HttpClient _http;
     private GitHubClient? _client;
+    private EtagCachingHandler? _etagHandler;
     private string? _activeToken;
 
     public GitHubService()
@@ -17,16 +19,29 @@ public sealed class GitHubService
         _http.DefaultRequestHeaders.UserAgent.ParseAdd("LocalDesktopStore/0.2");
     }
 
+    public int CacheHits => _etagHandler?.Hits ?? 0;
+    public int CacheMisses => _etagHandler?.Misses ?? 0;
+
     private GitHubClient GetClient(AppSettings cfg)
     {
         if (_client != null && _activeToken == cfg.GitHubToken) return _client;
-        var product = new ProductHeaderValue("LocalDesktopStore", "0.2.0-alpha");
-        var c = new GitHubClient(product);
-        if (!string.IsNullOrWhiteSpace(cfg.GitHubToken))
-            c.Credentials = new Credentials(cfg.GitHubToken);
-        _client = c;
+        var product = new ProductHeaderValue("LocalDesktopStore", "0.2.0");
+        var credStore = string.IsNullOrWhiteSpace(cfg.GitHubToken)
+            ? (ICredentialStore)new InMemoryCredentialStore(Credentials.Anonymous)
+            : new InMemoryCredentialStore(new Credentials(cfg.GitHubToken));
+        // Per-token handler: rotating the PAT must invalidate the ETag cache so we don't
+        // replay one user's cached payload to a different account.
+        _etagHandler = new EtagCachingHandler(new HttpClientHandler());
+        var handler = _etagHandler;
+        var connection = new Connection(
+            product,
+            GitHubClient.GitHubApiUrl,
+            credStore,
+            new HttpClientAdapter(() => handler),
+            new SimpleJsonSerializer());
+        _client = new GitHubClient(connection);
         _activeToken = cfg.GitHubToken;
-        return c;
+        return _client;
     }
 
     /// <summary>
@@ -42,6 +57,8 @@ public sealed class GitHubService
         owners.AddRange(cfg.ExtraOwners.Where(o => !string.IsNullOrWhiteSpace(o)).Select(o => o.Trim()));
         owners = owners.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
 
+        var hitsBefore = _etagHandler?.Hits ?? 0;
+        var missesBefore = _etagHandler?.Misses ?? 0;
         var found = new List<AppInfo>();
         foreach (var owner in owners)
         {
@@ -67,6 +84,13 @@ public sealed class GitHubService
                 var info = await ProbeRepoAsync(client, repo, log, ct);
                 if (info != null) found.Add(info);
             }
+        }
+        if (_etagHandler is not null)
+        {
+            var hits = _etagHandler.Hits - hitsBefore;
+            var misses = _etagHandler.Misses - missesBefore;
+            if (hits + misses > 0)
+                log?.Report($"  ETag cache: {hits} 304 hit(s), {misses} fresh fetch(es)");
         }
         return found;
     }

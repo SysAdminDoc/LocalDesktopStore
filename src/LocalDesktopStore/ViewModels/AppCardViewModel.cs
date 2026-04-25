@@ -43,7 +43,7 @@ public sealed class AppCardViewModel : ViewModelBase
         _refreshParent = refreshParent;
         _installed = installer.Find(info.RepoOwner, info.RepoName);
 
-        InstallCommand = new AsyncRelayCommand(InstallAsync, _ => CanInstall);
+        InstallCommand = new AsyncRelayCommand(_ => RunInstallAsync(CancellationToken.None), _ => CanInstall);
         UninstallCommand = new AsyncRelayCommand(UninstallAsync, _ => IsInstalled && !Busy);
         RunCommand = new RelayCommand(_ => Run(), _ => CanRun);
         OpenRepoCommand = new RelayCommand(_ => OpenUrl(Info.RepoUrl));
@@ -67,15 +67,24 @@ public sealed class AppCardViewModel : ViewModelBase
     public bool HasAsset => !string.IsNullOrEmpty(Info.AssetUrl);
     public bool IsInstalled => _installed != null;
     public bool IsUpdateAvailable => IsInstalled
-        && !string.Equals(_installed!.Version, Info.DisplayVersion, StringComparison.OrdinalIgnoreCase);
+        && VersionCompare.IsRemoteNewer(_installed!.Version, Info.DisplayVersion);
     public bool CanInstall => HasAsset && !Busy;
     public bool CanRun => IsInstalled && !Busy;
     public bool CanOpenDir => IsInstalled && !Busy
         && (_installed?.PortableRoot != null || _installed?.InstallLocation != null);
-    public string InstallButtonLabel => IsInstalled
-        ? (string.Equals(_installed!.Version, Info.DisplayVersion, StringComparison.OrdinalIgnoreCase)
-            ? "Reinstall" : $"Update to {Info.DisplayVersion}")
-        : (HasAsset ? "Install" : "Unavailable");
+    public string InstallButtonLabel
+    {
+        get
+        {
+            if (!IsInstalled) return HasAsset ? "Install" : "Unavailable";
+            return VersionCompare.Compare(_installed!.Version, Info.DisplayVersion) switch
+            {
+                VersionCompare.Result.Equal => "Reinstall",
+                VersionCompare.Result.RemoteOlder => "Reinstall",
+                _ => $"Update to {Info.DisplayVersion}"
+            };
+        }
+    }
     public string StatusBadge => IsInstalled
         ? (IsUpdateAvailable ? "Update available" : "Installed")
         : (HasAsset ? "Ready to install" : "Release needed");
@@ -124,7 +133,7 @@ public sealed class AppCardViewModel : ViewModelBase
     public ICommand OpenRepoCommand { get; }
     public ICommand OpenInstallDirCommand { get; }
 
-    private async Task InstallAsync(object? _)
+    public async Task RunInstallAsync(CancellationToken ct)
     {
         if (!HasAsset) return;
         Busy = true;
@@ -145,7 +154,7 @@ public sealed class AppCardViewModel : ViewModelBase
                 }
             });
             var logProgress = new Progress<string>(_log);
-            _installed = await _installer.InstallAsync(Info, _settingsAccessor(), logProgress, bytesProgress);
+            _installed = await _installer.InstallAsync(Info, _settingsAccessor(), logProgress, bytesProgress, ct);
             BusyMessage = "Installed";
             RaiseAllChanged();
             _refreshParent();

@@ -88,6 +88,7 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
                     <Grid Grid.Column="0" Width="470" MinWidth="320">
@@ -113,12 +114,19 @@
                             Margin="0,0,8,0" />
 
                     <Button Grid.Column="5"
+                            Content="{Binding UpdateAllButtonLabel}"
+                            Command="{Binding UpdateAllCommand}"
+                            ToolTip="Sequentially update every installed app whose remote release is newer than the local pin."
+                            Visibility="{Binding HasOutdated, Converter={StaticResource BoolToVis}}"
+                            Margin="0,0,8,0" />
+
+                    <Button Grid.Column="6"
                             Content="{Binding RefreshButtonLabel}"
                             Command="{Binding RefreshCommand}"
                             Style="{StaticResource AccentButton}"
                             Margin="0,0,8,0" />
 
-                    <Button Grid.Column="6"
+                    <Button Grid.Column="7"
                             Content="Settings"
                             x:Name="SettingsToggleButton"
                             Click="ToggleSettings_Click" />
@@ -356,7 +364,7 @@
                            Text="{Binding StatusText}"
                            Style="{StaticResource SubtleText}" />
                 <TextBlock Grid.Column="1" Style="{StaticResource MuteText}">
-                    <Run Text="LocalDesktopStore v0.2.0-alpha" />
+                    <Run Text="LocalDesktopStore v0.2.0" />
                 </TextBlock>
             </Grid>
         </Border>

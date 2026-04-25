@@ -28,6 +28,7 @@ public sealed class MainViewModel : ViewModelBase
     public ObservableCollection<string> LogLines { get; } = new();
 
     public ICommand RefreshCommand { get; }
+    public ICommand UpdateAllCommand { get; }
     public ICommand SaveSettingsCommand { get; }
     public ICommand SaveAndRefreshCommand { get; }
     public ICommand OpenInstallDirCommand { get; }
@@ -49,6 +50,7 @@ public sealed class MainViewModel : ViewModelBase
         AppsView.SortDescriptions.Add(new SortDescription(nameof(AppCardViewModel.Title), ListSortDirection.Ascending));
 
         RefreshCommand = new AsyncRelayCommand(_ => RefreshAsync(), _ => !Busy);
+        UpdateAllCommand = new AsyncRelayCommand(_ => UpdateAllAsync(), _ => !Busy && OutdatedCount > 0);
         SaveSettingsCommand = new RelayCommand(_ => { SaveSettings(); });
         SaveAndRefreshCommand = new AsyncRelayCommand(async _ =>
         {
@@ -171,6 +173,11 @@ public sealed class MainViewModel : ViewModelBase
     public int InstalledCount => _installer.Installed.Count;
     public int AvailableCount => Apps.Count;
     public int VisibleCount => AppsView.Cast<object>().Count();
+    public int OutdatedCount => Apps.Count(a => a.IsUpdateAvailable);
+    public bool HasOutdated => OutdatedCount > 0;
+    public string UpdateAllButtonLabel => OutdatedCount > 0
+        ? $"Update all ({OutdatedCount})"
+        : "Update all";
     public string RefreshButtonLabel => Busy ? "Refreshing..." : "Refresh";
     public bool ShowEmptyState => !Busy && VisibleCount == 0;
     public string EmptyStateTitle
@@ -216,6 +223,9 @@ public sealed class MainViewModel : ViewModelBase
         {
             var logProgress = new Progress<string>(Log);
             var infos = await _github.DiscoverAsync(_settings, logProgress);
+            // Re-read installed.json so cards built below see the freshest install state
+            // (e.g. an out-of-band install that ran while the app was open).
+            _installer.Reload();
             Apps.Clear();
             foreach (var info in infos)
             {
@@ -224,7 +234,10 @@ public sealed class MainViewModel : ViewModelBase
             }
             RefreshAppView();
             RefreshMetrics();
-            StatusText = $"Found {Apps.Count} app(s) — {InstalledCount} installed.";
+            var outdated = OutdatedCount;
+            StatusText = outdated > 0
+                ? $"Found {Apps.Count} app(s) — {InstalledCount} installed, {outdated} update(s) available."
+                : $"Found {Apps.Count} app(s) — {InstalledCount} installed.";
             Log(StatusText);
         }
         catch (Exception ex)
@@ -235,6 +248,48 @@ public sealed class MainViewModel : ViewModelBase
         finally
         {
             Busy = false;
+        }
+    }
+
+    private async Task UpdateAllAsync()
+    {
+        var queue = Apps.Where(a => a.IsUpdateAvailable && a.HasAsset).ToList();
+        if (queue.Count == 0)
+        {
+            StatusText = "Nothing to update.";
+            return;
+        }
+
+        Busy = true;
+        var ok = 0;
+        var failed = 0;
+        try
+        {
+            for (var idx = 0; idx < queue.Count; idx++)
+            {
+                var card = queue[idx];
+                StatusText = $"Updating {card.Title} ({idx + 1}/{queue.Count})...";
+                Log($"Update {idx + 1}/{queue.Count}: {card.Repo} -> {card.Info.DisplayVersion}");
+                try
+                {
+                    await card.RunInstallAsync(CancellationToken.None);
+                    if (card.HasError) failed++; else ok++;
+                }
+                catch (Exception ex)
+                {
+                    failed++;
+                    Log($"! Update failed for {card.Repo}: {ex.Message}");
+                }
+            }
+            StatusText = failed == 0
+                ? $"Updated {ok} app(s)."
+                : $"Updated {ok} app(s); {failed} failed — see activity log.";
+            Log(StatusText);
+        }
+        finally
+        {
+            Busy = false;
+            RefreshMetrics();
         }
     }
 
@@ -295,6 +350,9 @@ public sealed class MainViewModel : ViewModelBase
         OnPropertyChanged(nameof(InstalledCount));
         OnPropertyChanged(nameof(AvailableCount));
         OnPropertyChanged(nameof(VisibleCount));
+        OnPropertyChanged(nameof(OutdatedCount));
+        OnPropertyChanged(nameof(HasOutdated));
+        OnPropertyChanged(nameof(UpdateAllButtonLabel));
         OnPropertyChanged(nameof(ShowEmptyState));
         OnPropertyChanged(nameof(EmptyStateTitle));
         OnPropertyChanged(nameof(EmptyStateMessage));
