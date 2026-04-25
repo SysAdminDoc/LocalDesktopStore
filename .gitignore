@@ -1,0 +1,33 @@
+# Build output
+bin/
+obj/
+publish/
+out/
+*.user
+*.suo
+.vs/
+.vscode/
+
+# Local working notes (never committed)
+CLAUDE.md
+CODEX_CHANGELOG.md
+.claude/
+
+# Local artifacts
+*.pdb
+*.cache
+*.log
+publish-*/
+*.bak
+*.tmp
+
+# OS
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Local release artifacts
+*.zip
+*.zip.sha256.txt
+!banner.png
+!logo.png

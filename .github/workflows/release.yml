@@ -1,0 +1,83 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release (e.g. 0.1.0). Must match <Version> in csproj and an existing tag v<version>."
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Verify version matches
+        shell: pwsh
+        run: |
+          $expected = "${{ inputs.version }}"
+          $csproj   = Get-Content src/LocalDesktopStore/LocalDesktopStore.csproj -Raw
+          if ($csproj -notmatch "<Version>$([regex]::Escape($expected))</Version>") {
+            Write-Error "csproj <Version> does not match input '$expected'."
+            exit 1
+          }
+          Write-Host "Version OK: $expected"
+
+      - name: Restore
+        run: dotnet restore src/LocalDesktopStore/LocalDesktopStore.csproj
+
+      - name: Publish (framework-dependent, win-x64)
+        run: |
+          dotnet publish src/LocalDesktopStore/LocalDesktopStore.csproj `
+            -c Release `
+            -r win-x64 `
+            --self-contained false `
+            -p:PublishReadyToRun=false `
+            -p:DebugType=embedded `
+            -o publish/win-x64
+
+      - name: Smoke test
+        shell: pwsh
+        run: |
+          $exe = "publish/win-x64/LocalDesktopStore.exe"
+          if (-not (Test-Path $exe)) { Write-Error "Missing $exe"; exit 1 }
+          $info = Get-Item $exe
+          Write-Host "Built: $($info.Name) ($([math]::Round($info.Length/1KB)) KB)"
+
+      - name: Package ZIP
+        shell: pwsh
+        run: |
+          $zip = "LocalDesktopStore-v${{ inputs.version }}-win-x64.zip"
+          Compress-Archive -Path publish/win-x64/* -DestinationPath $zip -Force
+          (Get-FileHash $zip -Algorithm SHA256).Hash | Out-File "$zip.sha256.txt" -Encoding ascii
+          Get-Item $zip, "$zip.sha256.txt" | ForEach-Object {
+            Write-Host ("{0}  {1} bytes" -f $_.Name, $_.Length)
+          }
+
+      - name: Upload to GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="v${{ inputs.version }}"
+          zip="LocalDesktopStore-v${{ inputs.version }}-win-x64.zip"
+          sha="$zip.sha256.txt"
+          if ! gh release view "$tag" >/dev/null 2>&1; then
+            gh release create "$tag" \
+              --title "LocalDesktopStore $tag" \
+              --notes-file CHANGELOG.md
+          fi
+          gh release upload "$tag" "$zip" "$sha" --clobber
+          gh release view "$tag"
