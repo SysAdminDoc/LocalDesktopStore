@@ -31,3 +31,7 @@ desktop.ini
 *.zip.sha256.txt
 !banner.png
 !logo.png
+
+# Markdown files local-only (except README)
+*.md
+!README.md
