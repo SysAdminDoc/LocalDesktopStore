@@ -212,6 +212,55 @@
                                        IsHitTestVisible="False"
                                        Visibility="{Binding Text, ElementName=InstallRootBox, Converter={StaticResource EmptyStringToVis}}" />
                         </Grid>
+
+                        <TextBlock Text="Extra GitHub owners"
+                                   Style="{StaticResource InputLabel}"
+                                   Margin="0,12,0,5" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid Grid.Column="0">
+                                <TextBox x:Name="ExtraOwnerBox"
+                                         Text="{Binding ExtraOwnerInput, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock Text="owner or organization"
+                                           Style="{StaticResource MuteText}"
+                                           Margin="12,0,0,0"
+                                           VerticalAlignment="Center"
+                                           IsHitTestVisible="False"
+                                           Visibility="{Binding Text, ElementName=ExtraOwnerBox, Converter={StaticResource EmptyStringToVis}}" />
+                            </Grid>
+                            <Button Grid.Column="1"
+                                    Content="Add"
+                                    Command="{Binding AddExtraOwnerCommand}"
+                                    Margin="8,0,0,0" />
+                        </Grid>
+                        <TextBlock Text="No extra owners configured."
+                                   Style="{StaticResource MuteText}"
+                                   Margin="0,7,0,0"
+                                   Visibility="{Binding HasExtraOwners, Converter={StaticResource BoolToVis}, ConverterParameter=invert}" />
+                        <ListBox ItemsSource="{Binding ExtraOwners}"
+                                 MaxHeight="82"
+                                 Margin="0,7,0,0"
+                                 Visibility="{Binding HasExtraOwners, Converter={StaticResource BoolToVis}}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <DockPanel LastChildFill="True">
+                                        <Button DockPanel.Dock="Right"
+                                                Content="Remove"
+                                                Command="{Binding DataContext.RemoveExtraOwnerCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                CommandParameter="{Binding}"
+                                                Style="{StaticResource LinkButton}"
+                                                Margin="8,0,0,0" />
+                                        <TextBlock Text="{Binding}"
+                                                   Style="{StaticResource SubtleText}"
+                                                   VerticalAlignment="Center"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </DockPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" Margin="0,0,16,0">
@@ -240,6 +289,59 @@
                                    TextWrapping="Wrap"
                                    Margin="0,8,0,0"
                                    Text="When enabled, every install verifies the asset against its `.sha256.txt` sidecar before invoking the installer. Refuses to install on mismatch." />
+
+                        <TextBlock Text="Hidden repositories"
+                                   Style="{StaticResource InputLabel}"
+                                   Margin="0,16,0,5" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid Grid.Column="0">
+                                <TextBox x:Name="HiddenRepoBox"
+                                         Text="{Binding HiddenRepoInput, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock Text="owner/repo"
+                                           Style="{StaticResource MuteText}"
+                                           Margin="12,0,0,0"
+                                           VerticalAlignment="Center"
+                                           IsHitTestVisible="False"
+                                           Visibility="{Binding Text, ElementName=HiddenRepoBox, Converter={StaticResource EmptyStringToVis}}" />
+                            </Grid>
+                            <Button Grid.Column="1"
+                                    Content="Add"
+                                    Command="{Binding AddHiddenRepoCommand}"
+                                    Margin="8,0,0,0" />
+                        </Grid>
+                        <TextBlock Text="Hidden repos stay out of discovery and the current catalog view."
+                                   Style="{StaticResource MuteText}"
+                                   TextWrapping="Wrap"
+                                   Margin="0,7,0,0" />
+                        <TextBlock Text="No hidden repos configured."
+                                   Style="{StaticResource MuteText}"
+                                   Margin="0,7,0,0"
+                                   Visibility="{Binding HasHiddenRepos, Converter={StaticResource BoolToVis}, ConverterParameter=invert}" />
+                        <ListBox ItemsSource="{Binding HiddenRepos}"
+                                 MaxHeight="82"
+                                 Margin="0,7,0,0"
+                                 Visibility="{Binding HasHiddenRepos, Converter={StaticResource BoolToVis}}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <DockPanel LastChildFill="True">
+                                        <Button DockPanel.Dock="Right"
+                                                Content="Unhide"
+                                                Command="{Binding DataContext.RemoveHiddenRepoCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                CommandParameter="{Binding}"
+                                                Style="{StaticResource LinkButton}"
+                                                Margin="8,0,0,0" />
+                                        <TextBlock Text="{Binding}"
+                                                   Style="{StaticResource SubtleText}"
+                                                   VerticalAlignment="Center"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </DockPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
                     </StackPanel>
 
                     <StackPanel Grid.Column="2"
@@ -364,7 +466,7 @@
                            Text="{Binding StatusText}"
                            Style="{StaticResource SubtleText}" />
                 <TextBlock Grid.Column="1" Style="{StaticResource MuteText}">
-                    <Run Text="LocalDesktopStore v0.2.0" />
+                    <Run Text="LocalDesktopStore v0.2.1" />
                 </TextBlock>
             </Grid>
         </Border>

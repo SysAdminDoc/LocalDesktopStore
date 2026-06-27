@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
@@ -22,10 +23,14 @@ public sealed class MainViewModel : ViewModelBase
     private bool _showInstalledOnly;
     private string _githubUserInput = "";
     private string _githubTokenInput = "";
+    private string _extraOwnerInput = "";
+    private string _hiddenRepoInput = "";
 
     public ObservableCollection<AppCardViewModel> Apps { get; } = new();
     public ICollectionView AppsView { get; }
     public ObservableCollection<string> LogLines { get; } = new();
+    public ObservableCollection<string> ExtraOwners { get; } = new();
+    public ObservableCollection<string> HiddenRepos { get; } = new();
 
     public ICommand RefreshCommand { get; }
     public ICommand UpdateAllCommand { get; }
@@ -33,6 +38,10 @@ public sealed class MainViewModel : ViewModelBase
     public ICommand SaveAndRefreshCommand { get; }
     public ICommand OpenInstallDirCommand { get; }
     public ICommand ClearLogCommand { get; }
+    public ICommand AddExtraOwnerCommand { get; }
+    public ICommand RemoveExtraOwnerCommand { get; }
+    public ICommand AddHiddenRepoCommand { get; }
+    public ICommand RemoveHiddenRepoCommand { get; }
 
     public MainViewModel()
     {
@@ -44,6 +53,10 @@ public sealed class MainViewModel : ViewModelBase
 
         _githubUserInput = _settings.GitHubUser;
         _githubTokenInput = _settings.GitHubToken ?? string.Empty;
+        ReplaceCollection(ExtraOwners, NormalizeOwners(_settings.ExtraOwners, _settings.GitHubUser));
+        ReplaceCollection(HiddenRepos, NormalizeRepos(_settings.HiddenRepos));
+        ExtraOwners.CollectionChanged += OnSettingsListChanged;
+        HiddenRepos.CollectionChanged += OnSettingsListChanged;
 
         AppsView = CollectionViewSource.GetDefaultView(Apps);
         AppsView.Filter = FilterApp;
@@ -59,6 +72,10 @@ public sealed class MainViewModel : ViewModelBase
         }, _ => !Busy);
         OpenInstallDirCommand = new RelayCommand(_ => OpenInstallDir());
         ClearLogCommand = new RelayCommand(_ => LogLines.Clear());
+        AddExtraOwnerCommand = new RelayCommand(_ => AddExtraOwner());
+        RemoveExtraOwnerCommand = new RelayCommand(RemoveExtraOwner);
+        AddHiddenRepoCommand = new RelayCommand(_ => AddHiddenRepo());
+        RemoveHiddenRepoCommand = new RelayCommand(RemoveHiddenRepo);
 
         Log($"LocalDesktopStore v{App.ResourceAssembly.GetName().Version} ready.");
         Log($"Apps install root: {_settingsService.AppsRoot(_settings)}");
@@ -115,6 +132,26 @@ public sealed class MainViewModel : ViewModelBase
     {
         get => _githubTokenInput;
         set => SetField(ref _githubTokenInput, value);
+    }
+
+    public string ExtraOwnerInput
+    {
+        get => _extraOwnerInput;
+        set
+        {
+            if (SetField(ref _extraOwnerInput, value))
+                CommandManager.InvalidateRequerySuggested();
+        }
+    }
+
+    public string HiddenRepoInput
+    {
+        get => _hiddenRepoInput;
+        set
+        {
+            if (SetField(ref _hiddenRepoInput, value))
+                CommandManager.InvalidateRequerySuggested();
+        }
     }
 
     public bool UseTopicFilter
@@ -174,6 +211,8 @@ public sealed class MainViewModel : ViewModelBase
     public int AvailableCount => Apps.Count;
     public int VisibleCount => AppsView.Cast<object>().Count();
     public int OutdatedCount => Apps.Count(a => a.IsUpdateAvailable);
+    public bool HasExtraOwners => ExtraOwners.Count > 0;
+    public bool HasHiddenRepos => HiddenRepos.Count > 0;
     public bool HasOutdated => OutdatedCount > 0;
     public string UpdateAllButtonLabel => OutdatedCount > 0
         ? $"Update all ({OutdatedCount})"
@@ -207,6 +246,7 @@ public sealed class MainViewModel : ViewModelBase
     private bool FilterApp(object obj)
     {
         if (obj is not AppCardViewModel vm) return false;
+        if (vm.IsHidden) return false;
         if (ShowInstalledOnly && !vm.IsInstalled) return false;
         if (string.IsNullOrWhiteSpace(SearchText)) return true;
         var q = SearchText.Trim();
@@ -232,6 +272,7 @@ public sealed class MainViewModel : ViewModelBase
                 Apps.Add(new AppCardViewModel(
                     info, _installer, _github, _settingsService, () => _settings, Log, RefreshAfterChange));
             }
+            ApplyHiddenRepoState();
             RefreshAppView();
             RefreshMetrics();
             var outdated = OutdatedCount;
@@ -321,11 +362,88 @@ public sealed class MainViewModel : ViewModelBase
         _settings.GitHubUser = user;
         _settings.GitHubToken = string.IsNullOrWhiteSpace(GitHubTokenInput) ? null : GitHubTokenInput.Trim();
         _settings.TopicFilter = topic;
+        _settings.ExtraOwners = NormalizeOwners(ExtraOwners, user).ToList();
+        _settings.HiddenRepos = NormalizeRepos(HiddenRepos).ToList();
+        ReplaceCollection(ExtraOwners, _settings.ExtraOwners);
+        ReplaceCollection(HiddenRepos, _settings.HiddenRepos);
         _settingsService.Save(_settings);
         OnPropertyChanged(nameof(TopicFilter));
+        ApplyHiddenRepoState();
+        RefreshAppView();
         Log("Settings saved locally.");
         StatusText = "Settings saved locally.";
         return true;
+    }
+
+    private void AddExtraOwner()
+    {
+        var owner = NormalizeOwner(ExtraOwnerInput);
+        if (owner is null)
+        {
+            StatusText = "Enter a GitHub owner name before adding it.";
+            Log("! Extra owner was not added: blank owner.");
+            return;
+        }
+
+        if (owner.Equals(GitHubUserInput.Trim(), StringComparison.OrdinalIgnoreCase))
+        {
+            StatusText = $"{owner} is already the primary owner.";
+            Log($"! Extra owner was not added: {owner} is already primary.");
+            return;
+        }
+
+        if (ExtraOwners.Contains(owner, StringComparer.OrdinalIgnoreCase))
+        {
+            StatusText = $"{owner} is already in extra owners.";
+            return;
+        }
+
+        ExtraOwners.Add(owner);
+        ExtraOwnerInput = string.Empty;
+        SaveSettings();
+        StatusText = $"Added extra owner {owner}.";
+        Log($"Extra owner added: {owner}");
+    }
+
+    private void RemoveExtraOwner(object? item)
+    {
+        if (item is not string owner) return;
+        ExtraOwners.Remove(owner);
+        SaveSettings();
+        StatusText = $"Removed extra owner {owner}.";
+        Log($"Extra owner removed: {owner}");
+    }
+
+    private void AddHiddenRepo()
+    {
+        var repo = NormalizeRepo(HiddenRepoInput);
+        if (repo is null)
+        {
+            StatusText = "Enter a repo as owner/name before hiding it.";
+            Log("! Hidden repo was not added: expected owner/name.");
+            return;
+        }
+
+        if (HiddenRepos.Contains(repo, StringComparer.OrdinalIgnoreCase))
+        {
+            StatusText = $"{repo} is already hidden.";
+            return;
+        }
+
+        HiddenRepos.Add(repo);
+        HiddenRepoInput = string.Empty;
+        SaveSettings();
+        StatusText = $"Hidden {repo}.";
+        Log($"Hidden repo added: {repo}");
+    }
+
+    private void RemoveHiddenRepo(object? item)
+    {
+        if (item is not string repo) return;
+        HiddenRepos.Remove(repo);
+        SaveSettings();
+        StatusText = $"Unhid {repo}.";
+        Log($"Hidden repo removed: {repo}");
     }
 
     private void OpenInstallDir()
@@ -351,11 +469,72 @@ public sealed class MainViewModel : ViewModelBase
         OnPropertyChanged(nameof(AvailableCount));
         OnPropertyChanged(nameof(VisibleCount));
         OnPropertyChanged(nameof(OutdatedCount));
+        OnPropertyChanged(nameof(HasExtraOwners));
+        OnPropertyChanged(nameof(HasHiddenRepos));
         OnPropertyChanged(nameof(HasOutdated));
         OnPropertyChanged(nameof(UpdateAllButtonLabel));
         OnPropertyChanged(nameof(ShowEmptyState));
         OnPropertyChanged(nameof(EmptyStateTitle));
         OnPropertyChanged(nameof(EmptyStateMessage));
+    }
+
+    private void ApplyHiddenRepoState()
+    {
+        var hidden = new HashSet<string>(_settings.HiddenRepos, StringComparer.OrdinalIgnoreCase);
+        foreach (var app in Apps)
+            app.SetHidden(hidden.Contains(app.Repo));
+    }
+
+    private void OnSettingsListChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        OnPropertyChanged(nameof(HasExtraOwners));
+        OnPropertyChanged(nameof(HasHiddenRepos));
+    }
+
+    private static string? NormalizeOwner(string? owner)
+    {
+        var value = owner?.Trim().TrimStart('@');
+        if (string.IsNullOrWhiteSpace(value) || value.Contains('/')) return null;
+        return value;
+    }
+
+    private static IEnumerable<string> NormalizeOwners(IEnumerable<string>? owners, string primaryOwner)
+    {
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var owner in owners ?? Enumerable.Empty<string>())
+        {
+            var normalized = NormalizeOwner(owner);
+            if (normalized is null) continue;
+            if (normalized.Equals(primaryOwner, StringComparison.OrdinalIgnoreCase)) continue;
+            if (seen.Add(normalized))
+                yield return normalized;
+        }
+    }
+
+    private static string? NormalizeRepo(string? repo)
+    {
+        var value = repo?.Trim().Trim('/');
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        var parts = value.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        return parts.Length == 2 ? $"{parts[0]}/{parts[1]}" : null;
+    }
+
+    private static IEnumerable<string> NormalizeRepos(IEnumerable<string>? repos)
+    {
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var repo in repos ?? Enumerable.Empty<string>())
+        {
+            var normalized = NormalizeRepo(repo);
+            if (normalized is not null && seen.Add(normalized))
+                yield return normalized;
+        }
+    }
+
+    private static void ReplaceCollection(ObservableCollection<string> collection, IEnumerable<string> items)
+    {
+        collection.Clear();
+        foreach (var item in items)
+            collection.Add(item);
     }
 }
 

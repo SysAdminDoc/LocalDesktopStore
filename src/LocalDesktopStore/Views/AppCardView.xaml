@@ -66,11 +66,19 @@
                                TextTrimming="CharacterEllipsis" />
                 </StackPanel>
 
-                <TextBlock Grid.Column="2"
-                           Text="{Binding Stars}"
-                           Style="{StaticResource BadgeText}"
-                           Foreground="{StaticResource YellowBrush}"
-                           VerticalAlignment="Top" />
+                <StackPanel Grid.Column="2"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Top">
+                    <TextBlock Text="{Binding Stars}"
+                               Style="{StaticResource BadgeText}"
+                               Foreground="{StaticResource YellowBrush}"
+                               VerticalAlignment="Center" />
+                    <Button Content="Hide"
+                            Command="{Binding HideCommand}"
+                            Style="{StaticResource LinkButton}"
+                            ToolTip="Hide this app from the catalog."
+                            Margin="8,-4,0,0" />
+                </StackPanel>
             </Grid>
 
             <Grid Grid.Row="1" Margin="0,0,0,10">

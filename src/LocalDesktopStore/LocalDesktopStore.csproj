@@ -9,9 +9,9 @@
     <LangVersion>latest</LangVersion>
     <AssemblyName>LocalDesktopStore</AssemblyName>
     <RootNamespace>LocalDesktopStore</RootNamespace>
-    <Version>0.2.0</Version>
-    <FileVersion>0.2.0.0</FileVersion>
-    <AssemblyVersion>0.2.0.0</AssemblyVersion>
+    <Version>0.2.1</Version>
+    <FileVersion>0.2.1.0</FileVersion>
+    <AssemblyVersion>0.2.1.0</AssemblyVersion>
     <Product>LocalDesktopStore</Product>
     <Company>SysAdminDoc</Company>
     <Copyright>Copyright (c) 2026 SysAdminDoc. MIT License.</Copyright>

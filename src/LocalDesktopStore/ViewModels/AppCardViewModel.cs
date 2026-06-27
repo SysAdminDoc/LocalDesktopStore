@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.IO;
-using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using LocalDesktopStore.Models;
@@ -22,6 +21,7 @@ public sealed class AppCardViewModel : ViewModelBase
     private string? _errorMessage;
     private InstalledApp? _installed;
     private BitmapImage? _icon;
+    private bool _hidden;
 
     public AppInfo Info { get; }
 
@@ -48,6 +48,8 @@ public sealed class AppCardViewModel : ViewModelBase
         RunCommand = new RelayCommand(_ => Run(), _ => CanRun);
         OpenRepoCommand = new RelayCommand(_ => OpenUrl(Info.RepoUrl));
         OpenInstallDirCommand = new RelayCommand(_ => OpenDir(), _ => CanOpenDir);
+        HideCommand = new RelayCommand(_ => Hide());
+        _hidden = _settingsAccessor().HiddenRepos.Contains(Repo, StringComparer.OrdinalIgnoreCase);
         _ = LoadIconAsync();
     }
 
@@ -70,6 +72,7 @@ public sealed class AppCardViewModel : ViewModelBase
         && VersionCompare.IsRemoteNewer(_installed!.Version, Info.DisplayVersion);
     public bool CanInstall => HasAsset && !Busy;
     public bool CanRun => IsInstalled && !Busy;
+    public bool IsHidden => _hidden;
     public bool CanOpenDir => IsInstalled && !Busy
         && (_installed?.PortableRoot != null || _installed?.InstallLocation != null);
     public string InstallButtonLabel
@@ -132,6 +135,7 @@ public sealed class AppCardViewModel : ViewModelBase
     public ICommand RunCommand { get; }
     public ICommand OpenRepoCommand { get; }
     public ICommand OpenInstallDirCommand { get; }
+    public ICommand HideCommand { get; }
 
     public async Task RunInstallAsync(CancellationToken ct)
     {
@@ -175,13 +179,6 @@ public sealed class AppCardViewModel : ViewModelBase
     private async Task UninstallAsync(object? _)
     {
         if (_installed is null) return;
-        var confirm = MessageBox.Show(
-            $"Uninstall {Title} v{_installed.Version}?",
-            "Uninstall app",
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Warning);
-        if (confirm != MessageBoxResult.Yes) return;
-
         Busy = true;
         ErrorMessage = null;
         try
@@ -211,6 +208,19 @@ public sealed class AppCardViewModel : ViewModelBase
         if (_installed is null) return;
         var logProgress = new Progress<string>(_log);
         _installer.TryRun(_installed, logProgress);
+    }
+
+    private void Hide()
+    {
+        var cfg = _settingsAccessor();
+        if (!cfg.HiddenRepos.Contains(Repo, StringComparer.OrdinalIgnoreCase))
+        {
+            cfg.HiddenRepos.Add(Repo);
+            _settings.Save(cfg);
+        }
+        SetHidden(true);
+        _log($"Hidden {Repo}. Save and refresh keeps it out of future discovery.");
+        _refreshParent();
     }
 
     private void OpenDir()
@@ -278,6 +288,11 @@ public sealed class AppCardViewModel : ViewModelBase
         OnPropertyChanged(nameof(CanOpenDir));
         OnPropertyChanged(nameof(InstalledDetail));
         OnPropertyChanged(nameof(HasError));
+    }
+
+    public void SetHidden(bool hidden)
+    {
+        SetField(ref _hidden, hidden, nameof(IsHidden));
     }
 
     private static string FormatSize(long bytes)

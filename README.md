@@ -8,7 +8,7 @@
 </h1>
 
 <p align="center">
-  <a href="https://github.com/SysAdminDoc/LocalDesktopStore/releases"><img src="https://img.shields.io/badge/version-0.2.0-cba6f7?style=for-the-badge" alt="Version" /></a>
+  <a href="https://github.com/SysAdminDoc/LocalDesktopStore/releases"><img src="https://img.shields.io/badge/version-0.2.1-cba6f7?style=for-the-badge" alt="Version" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-a6e3a1?style=for-the-badge" alt="License" /></a>
   <a href="https://github.com/SysAdminDoc/LocalDesktopStore"><img src="https://img.shields.io/badge/platform-Windows%2010%2F11-74c7ec?style=for-the-badge" alt="Platform" /></a>
   <a href="https://dotnet.microsoft.com/"><img src="https://img.shields.io/badge/.NET-9.0-512BD4?style=for-the-badge" alt=".NET" /></a>
@@ -34,7 +34,7 @@ LocalDesktopStore knows about all of those. It picks the right asset off each re
 
 ---
 
-## Features (v0.1.0)
+## Features (v0.2.1)
 
 - **GitHub-sourced discovery** — every repo whose latest release ships an MSI, NSIS / Inno EXE, or portable ZIP appears as a card
 - **Smart asset classification** — picks the best installer per release, prefers MSI > NSIS / Inno > portable ZIP
@@ -46,6 +46,8 @@ LocalDesktopStore knows about all of those. It picks the right asset off each re
 - **SHA-256 sidecar verification** — refuses to install if `<asset>.sha256.txt` is present and doesn't match (matches the LocalChromeStore release convention)
 - **Search and filter** — by name, repo, or description; toggle to show only installed
 - **Topic filter (optional)** — restrict discovery to repos tagged with a topic (default `windows-app`)
+- **Multi-owner settings editor** — add/remove extra GitHub users or organizations without editing JSON
+- **Hidden repo filtering** — hide a card directly from the catalog or manage hidden `owner/repo` entries in settings
 - **Optional GitHub PAT** — public limit is 60 req/h; with a PAT it's 5,000/h and unlocks private repos
 - **Catppuccin Mocha dark theme** — matches LocalChromeStore exactly
 - **Activity log + crash log** — every install / uninstall / run / error is logged in-app and to disk
@@ -80,9 +82,11 @@ dotnet build src/LocalDesktopStore/LocalDesktopStore.csproj -c Release
 1. **Click Settings** in the top right
 2. Set **GitHub user / org** to your handle (defaults to `SysAdminDoc`)
 3. *(Optional)* Paste a GitHub personal access token to raise rate limits and surface private repos
-4. *(Optional)* Enable **Filter by topic** if you want to limit to repos tagged with `windows-app`
-5. Leave **Verify SHA-256 sidecar** on if your releases ship `.sha256.txt` sidecars (LocalChromeStore / LocalDesktopStore convention)
-6. Click **Save and refresh**
+4. *(Optional)* Add extra GitHub users or organizations under **Extra GitHub owners**
+5. *(Optional)* Add hidden repos as `owner/repo`, or hide a card from the catalog after refresh
+6. *(Optional)* Enable **Filter by topic** if you want to limit to repos tagged with `windows-app`
+7. Leave **Verify SHA-256 sidecar** on if your releases ship `.sha256.txt` sidecars (LocalChromeStore / LocalDesktopStore convention)
+8. Click **Save and refresh**
 
 Every qualifying repo appears as a card. Click **Install** on a card — LocalDesktopStore downloads the asset to `%LOCALAPPDATA%\LocalDesktopStore\downloads\`, verifies the hash, runs the correct installer, and remembers what it installed. Click **Run** to launch. Click **Uninstall** to remove.
 
@@ -145,7 +149,8 @@ Install-state detection runs as a registry diff: snapshot uninstall keys before 
 
 See [ROADMAP.md](ROADMAP.md). Highlights:
 
-- **v0.2.0** — Auto-update on refresh: compare local installed version against latest release tag and surface "Update available" + an "Update all" button. WinGet manifest export. MSIX packaging support.
+- **v0.2.1** — Multi-owner settings editor and hidden-repo filtering are live.
+- **Next** — Authenticode publisher pinning, per-card error/crash-log links, accessibility names/live log, WinGet manifest export, and MSIX packaging support.
 - **v0.3.0** — Catppuccin Latte light theme + accent color picker.
 - **v0.4.0** — Cross-platform port via Avalonia (Linux / macOS package equivalents — `.deb`, `.dmg`).
 

@@ -1,6 +1,5 @@
 using System.Collections.Specialized;
 using System.Windows;
-using System.Windows.Input;
 using LocalDesktopStore.ViewModels;
 
 namespace LocalDesktopStore;
@@ -16,7 +15,6 @@ public partial class MainWindow : Window
             SyncTokenBoxFromViewModel();
             SetSettingsDrawerOpen(false);
         };
-        KeyDown += OnWindowKeyDown;
     }
 
     private void ToggleSettings_Click(object sender, RoutedEventArgs e)
@@ -28,15 +26,6 @@ public partial class MainWindow : Window
     {
         if (DataContext is MainViewModel vm)
             vm.GitHubTokenInput = GitHubTokenBox.Password;
-    }
-
-    private void OnWindowKeyDown(object sender, KeyEventArgs e)
-    {
-        if (e.Key == Key.Escape && SettingsDrawer.Visibility == Visibility.Visible)
-        {
-            SetSettingsDrawerOpen(false);
-            e.Handled = true;
-        }
     }
 
     private void HookLogAutoScroll()

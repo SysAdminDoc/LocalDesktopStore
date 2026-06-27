@@ -59,7 +59,10 @@ public sealed class SettingsService
         try
         {
             var json = File.ReadAllText(SettingsPath);
-            return JsonSerializer.Deserialize<AppSettings>(json, JsonOpts) ?? new AppSettings();
+            var settings = JsonSerializer.Deserialize<AppSettings>(json, JsonOpts) ?? new AppSettings();
+            settings.ExtraOwners ??= new List<string>();
+            settings.HiddenRepos ??= new List<string>();
+            return settings;
         }
         catch { return new AppSettings(); }
     }
