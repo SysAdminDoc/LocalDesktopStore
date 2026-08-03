@@ -19,6 +19,7 @@ All notable changes to LocalDesktopStore are documented here. Format follows [Ke
 - **Custom installer arguments** (X9) — per-card MSI / Inno / NSIS / EXE overrides use Windows command-line quoting, are passed through `ProcessStartInfo.ArgumentList`, and persist in `installed.json` so updates reuse them.
 - **Verified download cache** (X10) — sidecar-verified assets are keyed by owner/repo, version, and SHA-256 under the downloads root; valid hits skip the network download, while corrupt or unavailable entries fall back safely.
 - **In-process artifact-handler host** (L2) — classification and install / uninstall / run lifecycle paths now resolve through one explicitly bundled `IArtifactHandler` registry. Velopack full-package payloads are recognized and refused as non-standalone installers, while AppImage support is guarded to Linux; no remote plugin loading exists.
+- **Headless CLI** (L4) — `--install`, `--uninstall`, `--run`, `--refresh`, `--list`, `--version`, `--help`, and optional `--json` output share the GUI service layer without constructing a WPF window. Publisher changes remain fail-closed without interactive approval.
 
 ### Changed
 - Refreshes now use a lockfile aligned with the framework-dependent project target, so locked restores no longer carry a stale `win-x64` runtime graph.

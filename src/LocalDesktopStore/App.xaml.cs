@@ -25,6 +25,17 @@ public partial class App : Application
             return;
         }
 
+        // WPF's StartupEventArgs can be empty for a WinExe launched from a redirected
+        // PowerShell command. Read the process command line so CLI invocations cannot
+        // fall through and construct the desktop window.
+        var processArgs = Environment.GetCommandLineArgs().Skip(1).ToArray();
+        if (CommandLineParser.IsCommandLine(processArgs))
+        {
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            _ = RunCommandLineAsync(processArgs);
+            return;
+        }
+
         var window = new MainWindow();
         MainWindow = window;
         window.Show();
@@ -37,6 +48,17 @@ public partial class App : Application
         _scheduledUpdates?.Dispose();
         _trayIcon?.Dispose();
         base.OnExit(e);
+    }
+
+    private async Task RunCommandLineAsync(string[] args)
+    {
+        var exitCode = await CommandLineHost.RunAsync(args, Console.Out, Console.Error);
+        Console.Out.Flush();
+        Console.Error.Flush();
+        // A WinExe process has no dispatcher-owned window in this mode. Exit explicitly
+        // after the asynchronous command completes so a WPF dispatcher cannot keep a
+        // headless PowerShell invocation alive indefinitely.
+        Environment.Exit(exitCode);
     }
 
     private void StartScheduledUpdates(MainViewModel vm, MainWindow window)

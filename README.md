@@ -62,6 +62,7 @@ LocalDesktopStore knows about all of those. It picks the right asset off each re
 - **Scheduled background update checks** — optionally poll every 1–24 hours, keep a least-privilege interactive Task Scheduler entry, and show native tray notifications without installing automatically
 - **Bulk selection operations** — select cards and run install, update, or uninstall sequentially with one aggregate status banner
 - **Catalog transfer** — File → Export/Import round-trips owners, hidden per-app overrides, install preferences, and version pins in a `.lds.json` file without exporting the GitHub PAT
+- **Headless CLI** — `LocalDesktopStore.exe --install owner/repo`, `--uninstall`, `--run`, `--refresh`, and `--list` share the same service layer as the UI; `--json` emits one machine-readable result
 - **Activity log + crash log** — every install / uninstall / run / error is logged in-app and to disk
 - **Async** — every API call, download, and installer invocation runs off the UI thread
 
@@ -112,6 +113,16 @@ Every qualifying repo appears as a card. Click **Install** on a card — LocalDe
 Use the per-card **Run after install** and **Pin after install** checkboxes when you want an install or update to finish with a launch or taskbar action. The pin option uses the Windows shell `pintotaskbar` verb and reports a clear activity-log message when Windows does not expose a pin-capable launch target; it never injects input or silently changes an unrelated shortcut.
 
 For installer-driven cards, enter optional **Custom installer arguments** such as `INSTALLDIR="C:\Program Files\Example"` or `/D="C:\Tools"`. LocalDesktopStore keeps the known safe defaults, appends the parsed override tokens, and carries the saved value into later updates; portable ZIP, MSIX, and App Installer cards leave this field disabled.
+
+PowerShell and device-prep scripts can use the headless path without opening the WPF window:
+
+```powershell
+.\LocalDesktopStore.exe --install SysAdminDoc/ExampleApp --json
+.\LocalDesktopStore.exe --list
+.\LocalDesktopStore.exe --uninstall SysAdminDoc/ExampleApp
+```
+
+CLI exit codes are `0` for success, `2` for invalid arguments, `3` when the requested app is not discovered or tracked, `4` for an operation failure, and `5` for cancellation. Publisher changes remain fail-closed because the CLI has no interactive approval prompt.
 
 Use **Export** on a card to write a WinGet v1.6 singleton manifest to `Desktop\manifests\<first-letter>\<owner>\<repo>\<version>\<owner>.<repo>.yaml`. The exporter hashes the downloaded release asset locally; review the generated MIT/license and installer metadata before submitting it with `wingetcreate`.
 
@@ -164,6 +175,7 @@ WPF on .NET 9 — MVVM, no third-party MVVM toolkit. The whole app is ~1,800 lin
   - `ArtifactHandlerRegistry` / `IArtifactHandler` — bundled in-process handlers for MSI / Inno / NSIS / Generic / MSIX / App Installer / Portable assets, with guarded Velopack and Linux AppImage entries
   - `AssetClassifier` — delegates name classification to the handler registry, then refines generic EXEs by PE / file content
   - `InstallService` — host/orchestrator that invokes the selected handler for install / uninstall / run
+  - `CommandLineParser` / `CommandLineHost` — headless install, uninstall, run, refresh, list, version, and JSON output without constructing the main window
   - `AppxPackageService` — standard-user MSIX install/uninstall, manifest identity lookup, certificate-trust errors, and App Installer URI handoff
   - `WingetDetectionService` — best-effort WinGet installed-catalog query and uninstall-metadata cross-check; unavailable COM falls back cleanly
   - `TaskbarPinService` — pointer-free shell context-verb pinning for the optional per-card taskbar action
