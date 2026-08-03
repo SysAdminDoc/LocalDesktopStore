@@ -83,7 +83,10 @@ public sealed class AppCardViewModel : ViewModelBase
     public string Description => Info.DisplayDescription;
     public string RepoUrl => Info.RepoUrl;
     public string Repo => $"{Info.RepoOwner}/{Info.RepoName}";
-    public string KindLabel => Info.Kind.DisplayName();
+    public string KindLabel => Info.IsSearchDiscovered
+        ? $"Search · {Info.Kind.DisplayName()}"
+        : Info.Kind.DisplayName();
+    public int DiscoveryRank => Info.DiscoveryRank;
     public string AssetSummary => Info.AssetUrl != null
         ? $"{Info.AssetName} • {FormatSize(Info.AssetSizeBytes)}"
         : "Add an MSI / EXE / ZIP / MSIX / App Installer release asset to enable install.";

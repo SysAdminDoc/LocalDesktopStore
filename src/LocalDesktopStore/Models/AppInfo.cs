@@ -16,6 +16,8 @@ public sealed class AppInfo
     public IReadOnlyList<string> IconCandidates { get; set; } = Array.Empty<string>();
     public int Stars { get; set; }
     public string? Topics { get; set; }
+    public bool IsSearchDiscovered { get; set; }
+    public int DiscoveryRank { get; set; }
 
     public string DisplayName => RepoName;
     public string DisplayVersion => LatestVersion?.TrimStart('v') ?? "—";

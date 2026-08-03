@@ -31,7 +31,7 @@
                 BorderBrush="{DynamicResource Surface0Brush}"
                 BorderThickness="0,0,0,1"
                 Padding="22,16">
-            <Grid>
+             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
@@ -88,7 +88,7 @@
                 Padding="20,12"
                 BorderBrush="{DynamicResource Surface0Brush}"
                 BorderThickness="0,0,0,1">
-            <Grid>
+             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
@@ -199,6 +199,9 @@
                 Padding="18"
                 Visibility="Collapsed"
                 Effect="{StaticResource PanelShadow}">
+            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled"
+                          MaxHeight="560">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -212,7 +215,7 @@
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0">
                         <TextBlock Text="Discovery settings" Style="{StaticResource SectionTitle}" />
-                        <TextBlock Text="Configure the GitHub source, topic filter, hash verification, and rate-limit token."
+                        <TextBlock Text="Configure the curated GitHub source, optional search discovery, hash verification, and rate-limit token."
                                    Style="{StaticResource SubtleText}" />
                     </StackPanel>
                     <Button Grid.Column="1"
@@ -393,6 +396,27 @@
                                    Margin="0,8,0,0"
                                    Text="When enabled, discovery only shows repos tagged with the selected topic. Otherwise any repo whose latest release ships an MSI / EXE / ZIP can appear." />
 
+                        <CheckBox Content="Opt in to GitHub Search discovery"
+                                  IsChecked="{Binding EnableGitHubSearchDiscovery}"
+                                  AutomationProperties.Name="Opt in to GitHub Search discovery"
+                                  Margin="0,16,0,0" />
+                        <Grid Margin="0,8,0,0">
+                            <TextBox x:Name="SearchTopicBox"
+                                     Text="{Binding SearchTopic, UpdateSourceTrigger=PropertyChanged}"
+                                     AutomationProperties.Name="GitHub Search topic"
+                                     IsEnabled="{Binding EnableGitHubSearchDiscovery}" />
+                            <TextBlock Text="windows-app"
+                                       Style="{StaticResource MuteText}"
+                                       Margin="12,0,0,0"
+                                       VerticalAlignment="Center"
+                                       IsHitTestVisible="False"
+                                       Visibility="{Binding Text, ElementName=SearchTopicBox, Converter={StaticResource EmptyStringToVis}}" />
+                        </Grid>
+                        <TextBlock Style="{StaticResource MuteText}"
+                                   TextWrapping="Wrap"
+                                   Margin="0,8,0,0"
+                                   Text="Search results are uncurated. Every search-discovered install requires an explicit Authenticode thumbprint pin below." />
+
                         <CheckBox Content="Verify SHA-256 sidecar"
                                   IsChecked="{Binding VerifyHashSidecar}"
                                   AutomationProperties.Name="Verify SHA-256 sidecar before installation"
@@ -401,6 +425,22 @@
                                    TextWrapping="Wrap"
                                    Margin="0,8,0,0"
                                    Text="When enabled, every install verifies the asset against its `.sha256.txt` sidecar before invoking the installer. Refuses to install on mismatch." />
+
+                        <TextBlock Text="Search-discovery publisher pins"
+                                   Style="{StaticResource InputLabel}"
+                                   Margin="0,16,0,5" />
+                        <TextBox Text="{Binding SearchPublisherPinsInput, UpdateSourceTrigger=PropertyChanged}"
+                                 AutomationProperties.Name="Search discovery publisher pins"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 VerticalScrollBarVisibility="Auto"
+                                 MinHeight="54"
+                                 MaxHeight="78"
+                                 ToolTip="One per line: owner/repo=40-character Authenticode SHA-1 thumbprint." />
+                        <TextBlock Style="{StaticResource MuteText}"
+                                   TextWrapping="Wrap"
+                                   Margin="0,7,0,0"
+                                   Text="Pins are required only for GitHub Search results. Use the signer thumbprint shown by a trusted release or your existing installed manifest." />
 
                         <TextBlock Text="Hidden repositories"
                                    Style="{StaticResource InputLabel}"
@@ -473,7 +513,8 @@
                                 AutomationProperties.Name="Save settings" />
                     </StackPanel>
                 </Grid>
-            </Grid>
+             </Grid>
+             </ScrollViewer>
         </Border>
 
         <Grid Grid.Row="3">

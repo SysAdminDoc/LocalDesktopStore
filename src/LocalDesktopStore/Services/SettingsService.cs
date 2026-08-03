@@ -62,6 +62,7 @@ public sealed class SettingsService
             var settings = JsonSerializer.Deserialize<AppSettings>(json, JsonOpts) ?? new AppSettings();
             settings.ExtraOwners ??= new List<string>();
             settings.HiddenRepos ??= new List<string>();
+            settings.SearchTopic = string.IsNullOrWhiteSpace(settings.SearchTopic) ? "windows-app" : settings.SearchTopic.Trim();
             settings.CatalogVersionPins ??= new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             settings.CatalogVersionPins = new Dictionary<string, string>(settings.CatalogVersionPins, StringComparer.OrdinalIgnoreCase);
             settings.InstallPreferences ??= new Dictionary<string, AppInstallPreferences>(StringComparer.OrdinalIgnoreCase);
@@ -76,6 +77,7 @@ public sealed class SettingsService
                         InstallerArguments = NormalizeInstallerArguments(pair.Value.InstallerArguments)
                     },
                     StringComparer.OrdinalIgnoreCase);
+            settings.SearchPublisherPins = PublisherPinParser.Sanitize(settings.SearchPublisherPins);
             return settings;
         }
         catch { return new AppSettings(); }

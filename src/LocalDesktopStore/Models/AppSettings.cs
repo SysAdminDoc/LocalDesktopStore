@@ -6,6 +6,8 @@ public sealed class AppSettings
     public string? GitHubToken { get; set; }
     public bool UseTopicFilter { get; set; } = false;
     public string TopicFilter { get; set; } = "windows-app";
+    public bool EnableGitHubSearchDiscovery { get; set; }
+    public string SearchTopic { get; set; } = "windows-app";
     public List<string> ExtraOwners { get; set; } = new();
     public List<string> HiddenRepos { get; set; } = new();
     public bool VerifyHashSidecar { get; set; } = true;
@@ -16,6 +18,7 @@ public sealed class AppSettings
     public int ScheduledUpdateIntervalHours { get; set; } = 6;
     public Dictionary<string, string> CatalogVersionPins { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     public Dictionary<string, AppInstallPreferences> InstallPreferences { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+    public Dictionary<string, string> SearchPublisherPins { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 }
 
 public sealed class AppInstallPreferences

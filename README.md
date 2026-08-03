@@ -38,6 +38,7 @@ LocalDesktopStore knows about all of those. It picks the right asset off each re
 ## Features (v0.2.1)
 
 - **GitHub-sourced discovery** — every repo whose latest release ships an MSI, NSIS / Inno EXE, portable ZIP, MSIX, or App Installer manifest appears as a card
+- **Opt-in GitHub Search discovery** — search for repos tagged `windows-app`, probe the star-sorted results for release assets, and keep them visibly separate from curated owners
 - **Smart asset classification** — picks the best installer per release, preferring MSI > App Installer > MSIX / MSIXBundle > NSIS / Inno > portable ZIP
 - **In-process artifact handlers** — discovery and lifecycle operations share one bundled `IArtifactHandler` registry; no remote assemblies, scripts, or dynamic plugin loads are permitted
 - **Inno-vs-NSIS detection** — file-name hints first, then a bounded byte scan for the real signature ("Inno Setup Setup Data" / "Nullsoft Install System") — refuses to silently use the wrong silent-flag set
@@ -57,6 +58,7 @@ LocalDesktopStore knows about all of those. It picks the right asset off each re
 - **Multi-owner settings editor** — add/remove extra GitHub users or organizations without editing JSON
 - **Hidden repo filtering** — hide a card directly from the catalog or manage hidden `owner/repo` entries in settings
 - **Optional GitHub PAT** — public limit is 60 req/h; with a PAT it's 5,000/h and unlocks private repos
+- **Search publisher pins** — GitHub Search results require an explicit `owner/repo=SHA-1 thumbprint` pin and a matching trusted Authenticode MSI/EXE signer before installation; archive and package handoffs remain curated-only
 - **WinGet manifest export** — export a v1.6 singleton manifest per card, with a locally calculated installer hash and the appropriate MSI / Inno / NSIS / EXE / portable ZIP metadata
 - **Catppuccin Mocha / Latte themes** — switch palettes at runtime, with an optional Windows system accent
 - **Scheduled background update checks** — optionally poll every 1–24 hours, keep a least-privilege interactive Task Scheduler entry, and show native tray notifications without installing automatically
@@ -98,11 +100,12 @@ dotnet build src/LocalDesktopStore/LocalDesktopStore.csproj -c Release
 4. *(Optional)* Add extra GitHub users or organizations under **Extra GitHub owners**
 5. *(Optional)* Add hidden repos as `owner/repo`, or hide a card from the catalog after refresh
 6. *(Optional)* Enable **Filter by topic** if you want to limit to repos tagged with `windows-app`
-7. *(Optional)* Switch to the **Catppuccin Latte light theme** or enable the **Windows system accent** under Appearance; both apply immediately and persist when you save settings
-8. *(Optional)* Enable **Check for updates in the background** and choose an interval from 1–24 hours; checks run as your signed-in user, notify through the tray, and never install automatically
-9. Leave **Verify SHA-256 sidecar** on if your releases ship `.sha256.txt` sidecars (LocalChromeStore / LocalDesktopStore convention)
-10. Keep your MSI/EXE release assets Authenticode-signed and your MSIX publisher certificate trusted by Windows; LocalDesktopStore refuses unsigned or untrusted packages and never imports certificates automatically
-11. Click **Save and refresh**
+7. *(Optional)* Enable **GitHub Search discovery**, choose its topic (default `windows-app`), and add one signer thumbprint per search-discovered `owner/repo` as `owner/repo=THUMBPRINT`
+8. *(Optional)* Switch to the **Catppuccin Latte light theme** or enable the **Windows system accent** under Appearance; both apply immediately and persist when you save settings
+9. *(Optional)* Enable **Check for updates in the background** and choose an interval from 1–24 hours; checks run as your signed-in user, notify through the tray, and never install automatically
+10. Leave **Verify SHA-256 sidecar** on if your releases ship `.sha256.txt` sidecars (LocalChromeStore / LocalDesktopStore convention)
+11. Keep your MSI/EXE release assets Authenticode-signed and your MSIX publisher certificate trusted by Windows; LocalDesktopStore refuses unsigned or untrusted packages and never imports certificates automatically
+12. Click **Save and refresh**
 
 Select one or more card checkboxes to reveal **Install selected**, **Update selected**, and **Uninstall selected**. Bulk work is deliberately sequential so installer output and failures remain attributable to one app at a time.
 
@@ -172,6 +175,7 @@ WPF on .NET 9 — MVVM, no third-party MVVM toolkit. The whole app is ~1,800 lin
 - `Models/` — plain data records (`AppInfo`, `InstalledApp`, `AppSettings`, `ArtifactKind`)
 - `Services/`
   - `GitHubService` — Octokit-backed discovery and asset download
+  - `PublisherPinParser` — validates explicit search-discovery owner/repo-to-Authenticode-thumbprint pins
   - `ArtifactHandlerRegistry` / `IArtifactHandler` — bundled in-process handlers for MSI / Inno / NSIS / Generic / MSIX / App Installer / Portable assets, with guarded Velopack and Linux AppImage entries
   - `AssetClassifier` — delegates name classification to the handler registry, then refines generic EXEs by PE / file content
   - `InstallService` — host/orchestrator that invokes the selected handler for install / uninstall / run

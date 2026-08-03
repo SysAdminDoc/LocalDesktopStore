@@ -66,6 +66,7 @@ public sealed class InstallService
             throw new InvalidOperationException("No release asset to install.");
 
         var initialHandler = _artifactHandlers.Resolve(new ArtifactProbe(info.AssetName!, info.Kind));
+        var searchPublisherPin = ResolveSearchPublisherPin(info, cfg, initialHandler.Kind);
         if (initialHandler.Kind == ArtifactKind.AppInstaller)
         {
             return await initialHandler.InstallAsync(new ArtifactInstallContext
@@ -147,6 +148,13 @@ public sealed class InstallService
                 throw new InvalidOperationException($"Authenticode verification failed: {publisher.Detail}");
 
             log?.Report($"  ✓ Authenticode OK: {publisher.Subject} [{publisher.Thumbprint}]");
+            if (searchPublisherPin is not null
+                && !searchPublisherPin.Equals(publisher.Thumbprint, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException(
+                    $"Search-discovered app publisher thumbprint did not match the explicit pin for {info.RepoOwner}/{info.RepoName}; installation was not started.");
+            }
+
             if (!string.IsNullOrEmpty(previous?.PublisherCertThumbprint)
                 && !previous.PublisherCertThumbprint.Equals(publisher.Thumbprint, StringComparison.OrdinalIgnoreCase))
             {
@@ -168,6 +176,12 @@ public sealed class InstallService
 
                 log?.Report("  ~ Publisher changed; continuing after explicit approval.");
             }
+        }
+
+        if (searchPublisherPin is not null && publisher is null)
+        {
+            throw new InvalidOperationException(
+                "Search-discovered installs require a trusted Authenticode MSI/EXE publisher; this artifact kind cannot satisfy the explicit publisher pin.");
         }
 
         var refinedKind = info.Kind is ArtifactKind.PortableZip or ArtifactKind.Msi or ArtifactKind.Msix
@@ -635,6 +649,28 @@ public sealed class InstallService
         if (cfg.InstallPreferences?.TryGetValue(key, out var preference) == true)
             return InstallerArgumentParser.Normalize(preference.InstallerArguments);
         return InstallerArgumentParser.Normalize(previous?.InstallerArguments);
+    }
+
+    private static string? ResolveSearchPublisherPin(AppInfo info, AppSettings cfg, ArtifactKind handlerKind)
+    {
+        if (!info.IsSearchDiscovered)
+            return null;
+
+        if (handlerKind is not (ArtifactKind.Msi or ArtifactKind.Inno or ArtifactKind.Nsis or ArtifactKind.GenericExe))
+        {
+            throw new InvalidOperationException(
+                "Search-discovered installs are limited to MSI and Authenticode EXE handlers; use a curated owner/repo entry for archive or package handoffs.");
+        }
+
+        var key = $"{info.RepoOwner}/{info.RepoName}";
+        if (!cfg.SearchPublisherPins.TryGetValue(key, out var configuredPin)
+            || !PublisherPinParser.TryNormalize(key, configuredPin, out _, out var normalizedPin, out _))
+        {
+            throw new InvalidOperationException(
+                $"Search-discovered app {key} has no valid explicit publisher pin. Add {key}=THUMBPRINT in discovery settings before installing it.");
+        }
+
+        return normalizedPin;
     }
 
     // ----- Portable -----

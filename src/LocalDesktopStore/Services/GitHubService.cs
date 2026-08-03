@@ -85,6 +85,20 @@ public sealed class GitHubService
                 if (info != null) found.Add(info);
             }
         }
+
+        if (cfg.EnableGitHubSearchDiscovery)
+        {
+            var searched = await DiscoverSearchResultsAsync(client, cfg, log, ct);
+            var existing = new HashSet<string>(
+                found.Select(info => $"{info.RepoOwner}/{info.RepoName}"),
+                StringComparer.OrdinalIgnoreCase);
+            foreach (var info in searched)
+            {
+                if (existing.Add($"{info.RepoOwner}/{info.RepoName}"))
+                    found.Add(info);
+            }
+        }
+
         if (_etagHandler is not null)
         {
             var hits = _etagHandler.Hits - hitsBefore;
@@ -92,6 +106,50 @@ public sealed class GitHubService
             if (hits + misses > 0)
                 log?.Report($"  ETag cache: {hits} 304 hit(s), {misses} fresh fetch(es)");
         }
+        return found;
+    }
+
+    private async Task<List<AppInfo>> DiscoverSearchResultsAsync(
+        GitHubClient client,
+        AppSettings cfg,
+        IProgress<string>? log,
+        CancellationToken ct)
+    {
+        var topic = string.IsNullOrWhiteSpace(cfg.SearchTopic) ? "windows-app" : cfg.SearchTopic.Trim();
+        log?.Report($"Searching GitHub repositories tagged topic:{topic}...");
+        SearchRepositoryResult results;
+        try
+        {
+            var request = new SearchRepositoriesRequest($"topic:{topic}")
+            {
+                SortField = RepoSearchSort.Stars,
+                Order = SortDirection.Descending,
+                Page = 1,
+                PerPage = 50,
+                Archived = false
+            };
+            results = await client.Search.SearchRepo(request);
+        }
+        catch (Exception ex)
+        {
+            log?.Report($"  ! GitHub Search discovery failed: {ex.Message}");
+            return new List<AppInfo>();
+        }
+
+        log?.Report($"  {results.TotalCount} search result(s); probing the first {results.Items.Count} for Windows release assets.");
+        var found = new List<AppInfo>();
+        for (var index = 0; index < results.Items.Count; index++)
+        {
+            ct.ThrowIfCancellationRequested();
+            var repo = results.Items[index];
+            if (repo.Archived || cfg.HiddenRepos.Contains($"{repo.Owner.Login}/{repo.Name}", StringComparer.OrdinalIgnoreCase))
+                continue;
+
+            var info = await ProbeRepoAsync(client, repo, log, ct, isSearchDiscovered: true, discoveryRank: index + 1);
+            if (info is not null)
+                found.Add(info);
+        }
+
         return found;
     }
 
@@ -105,7 +163,13 @@ public sealed class GitHubService
         catch { return null; }
     }
 
-    private async Task<AppInfo?> ProbeRepoAsync(GitHubClient client, Repository repo, IProgress<string>? log, CancellationToken ct)
+    private async Task<AppInfo?> ProbeRepoAsync(
+        GitHubClient client,
+        Repository repo,
+        IProgress<string>? log,
+        CancellationToken ct,
+        bool isSearchDiscovered = false,
+        int discoveryRank = 0)
     {
         Release? release = null;
         try { release = await client.Repository.Release.GetLatest(repo.Owner.Login, repo.Name); }
@@ -143,7 +207,9 @@ public sealed class GitHubService
             Kind = best.Kind,
             Sha256Url = sidecar?.BrowserDownloadUrl,
             PublishedAt = release.PublishedAt,
-            IconCandidates = ResolveIconCandidates(repo)
+            IconCandidates = ResolveIconCandidates(repo),
+            IsSearchDiscovered = isSearchDiscovered,
+            DiscoveryRank = discoveryRank
         };
         return info;
     }

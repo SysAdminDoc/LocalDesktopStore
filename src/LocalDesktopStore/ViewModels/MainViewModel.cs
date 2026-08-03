@@ -26,6 +26,7 @@ public sealed class MainViewModel : ViewModelBase
     private string _githubTokenInput = "";
     private string _extraOwnerInput = "";
     private string _hiddenRepoInput = "";
+    private string _searchPublisherPinsInput = "";
 
     public event EventHandler? SettingsSaved;
 
@@ -65,6 +66,7 @@ public sealed class MainViewModel : ViewModelBase
 
         _githubUserInput = _settings.GitHubUser;
         _githubTokenInput = _settings.GitHubToken ?? string.Empty;
+        _searchPublisherPinsInput = PublisherPinParser.Format(_settings.SearchPublisherPins);
         ReplaceCollection(ExtraOwners, NormalizeOwners(_settings.ExtraOwners, _settings.GitHubUser));
         ReplaceCollection(HiddenRepos, NormalizeRepos(_settings.HiddenRepos));
         ExtraOwners.CollectionChanged += OnSettingsListChanged;
@@ -72,6 +74,7 @@ public sealed class MainViewModel : ViewModelBase
 
         AppsView = CollectionViewSource.GetDefaultView(Apps);
         AppsView.Filter = FilterApp;
+        AppsView.SortDescriptions.Add(new SortDescription(nameof(AppCardViewModel.DiscoveryRank), ListSortDirection.Ascending));
         AppsView.SortDescriptions.Add(new SortDescription(nameof(AppCardViewModel.Title), ListSortDirection.Ascending));
 
         RefreshCommand = new AsyncRelayCommand(_ => RefreshAsync(), _ => !Busy);
@@ -209,6 +212,39 @@ public sealed class MainViewModel : ViewModelBase
                 OnPropertyChanged();
             }
         }
+    }
+
+    public bool EnableGitHubSearchDiscovery
+    {
+        get => _settings.EnableGitHubSearchDiscovery;
+        set
+        {
+            if (_settings.EnableGitHubSearchDiscovery != value)
+            {
+                _settings.EnableGitHubSearchDiscovery = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public string SearchTopic
+    {
+        get => _settings.SearchTopic;
+        set
+        {
+            var normalized = value?.Trim() ?? string.Empty;
+            if (_settings.SearchTopic != normalized)
+            {
+                _settings.SearchTopic = normalized;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public string SearchPublisherPinsInput
+    {
+        get => _searchPublisherPinsInput;
+        set => SetField(ref _searchPublisherPinsInput, value);
     }
 
     public bool UseLightTheme
@@ -479,9 +515,26 @@ public sealed class MainViewModel : ViewModelBase
             return false;
         }
 
+        if (EnableGitHubSearchDiscovery && string.IsNullOrWhiteSpace(SearchTopic))
+        {
+            StatusText = "Enter a topic for GitHub Search discovery or turn it off.";
+            Log("! Settings were not saved: search discovery topic is blank.");
+            return false;
+        }
+
+        if (!PublisherPinParser.TryParseLines(SearchPublisherPinsInput, out var searchPublisherPins, out var pinError))
+        {
+            StatusText = $"Publisher pins were not saved: {pinError}";
+            Log($"! Settings were not saved: {pinError}");
+            return false;
+        }
+
         _settings.GitHubUser = user;
         _settings.GitHubToken = string.IsNullOrWhiteSpace(GitHubTokenInput) ? null : GitHubTokenInput.Trim();
         _settings.TopicFilter = topic;
+        _settings.SearchTopic = SearchTopic.Trim();
+        _settings.SearchPublisherPins = searchPublisherPins;
+        _searchPublisherPinsInput = PublisherPinParser.Format(_settings.SearchPublisherPins);
         _settings.ScheduledUpdateIntervalHours = Math.Clamp(_settings.ScheduledUpdateIntervalHours, 1, 24);
         _settings.ExtraOwners = NormalizeOwners(ExtraOwners, user).ToList();
         _settings.HiddenRepos = NormalizeRepos(HiddenRepos).ToList();
@@ -490,6 +543,8 @@ public sealed class MainViewModel : ViewModelBase
         _settingsService.Save(_settings);
         SettingsSaved?.Invoke(this, EventArgs.Empty);
         OnPropertyChanged(nameof(TopicFilter));
+        OnPropertyChanged(nameof(SearchTopic));
+        OnPropertyChanged(nameof(SearchPublisherPinsInput));
         ApplyHiddenRepoState();
         RefreshAppView();
         Log("Settings saved locally.");
@@ -623,6 +678,9 @@ public sealed class MainViewModel : ViewModelBase
                 .ToList();
             _settings.UseTopicFilter = document.UseTopicFilter;
             _settings.TopicFilter = document.TopicFilter.Trim();
+            _settings.EnableGitHubSearchDiscovery = document.EnableGitHubSearchDiscovery;
+            _settings.SearchTopic = string.IsNullOrWhiteSpace(document.SearchTopic) ? "windows-app" : document.SearchTopic.Trim();
+            _settings.SearchPublisherPins = PublisherPinParser.Sanitize(document.SearchPublisherPins);
             _settings.VerifyHashSidecar = document.VerifyHashSidecar;
             _settings.InstallRootOverride = string.IsNullOrWhiteSpace(document.InstallRootOverride)
                 ? null
@@ -649,6 +707,10 @@ public sealed class MainViewModel : ViewModelBase
             OnPropertyChanged(nameof(GitHubUserInput));
             OnPropertyChanged(nameof(UseTopicFilter));
             OnPropertyChanged(nameof(TopicFilter));
+            OnPropertyChanged(nameof(EnableGitHubSearchDiscovery));
+            OnPropertyChanged(nameof(SearchTopic));
+            _searchPublisherPinsInput = PublisherPinParser.Format(_settings.SearchPublisherPins);
+            OnPropertyChanged(nameof(SearchPublisherPinsInput));
             OnPropertyChanged(nameof(VerifyHashSidecar));
             OnPropertyChanged(nameof(InstallRootOverride));
             SettingsSaved?.Invoke(this, EventArgs.Empty);

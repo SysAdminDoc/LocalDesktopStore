@@ -13,6 +13,9 @@ public sealed class CatalogTransferDocument
     public List<string> ExtraOwners { get; set; } = new();
     public bool UseTopicFilter { get; set; }
     public string TopicFilter { get; set; } = "windows-app";
+    public bool EnableGitHubSearchDiscovery { get; set; }
+    public string SearchTopic { get; set; } = "windows-app";
+    public Dictionary<string, string> SearchPublisherPins { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     public bool VerifyHashSidecar { get; set; } = true;
     public string? InstallRootOverride { get; set; }
     public List<CatalogAppEntry> Apps { get; set; } = new();
@@ -69,6 +72,9 @@ public static class CatalogTransferService
             ExtraOwners = (settings.ExtraOwners ?? new()).Where(owner => !string.IsNullOrWhiteSpace(owner)).Select(owner => owner.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(owner => owner, StringComparer.OrdinalIgnoreCase).ToList(),
             UseTopicFilter = settings.UseTopicFilter,
             TopicFilter = settings.TopicFilter?.Trim() ?? string.Empty,
+            EnableGitHubSearchDiscovery = settings.EnableGitHubSearchDiscovery,
+            SearchTopic = string.IsNullOrWhiteSpace(settings.SearchTopic) ? "windows-app" : settings.SearchTopic.Trim(),
+            SearchPublisherPins = PublisherPinParser.Sanitize(settings.SearchPublisherPins),
             VerifyHashSidecar = settings.VerifyHashSidecar,
             InstallRootOverride = settings.InstallRootOverride,
             Apps = keys.Select(key => CreateEntry(key, hidden, pins, preferences, installedByKey)).ToList()
@@ -141,10 +147,15 @@ public static class CatalogTransferService
         if (document.SchemaVersion != CurrentSchemaVersion)
             throw new InvalidOperationException($"Unsupported catalog schema version {document.SchemaVersion}.");
         ValidateOwner(document.PrimaryOwner, "primary owner");
-        if (document.ExtraOwners is null || document.Apps is null)
+        if (document.ExtraOwners is null || document.Apps is null || document.SearchPublisherPins is null)
             throw new InvalidOperationException("The catalog file is missing required collections.");
         foreach (var owner in document.ExtraOwners)
             ValidateOwner(owner, "extra owner");
+        foreach (var pin in document.SearchPublisherPins)
+        {
+            if (!PublisherPinParser.TryNormalize(pin.Key, pin.Value, out _, out _, out var pinError))
+                throw new InvalidOperationException($"The catalog contains an invalid publisher pin: {pinError}");
+        }
         if (document.Apps.Count > 10_000)
             throw new InvalidOperationException("The catalog contains too many app entries.");
 
