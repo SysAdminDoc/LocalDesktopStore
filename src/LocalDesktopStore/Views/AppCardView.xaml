@@ -73,6 +73,12 @@
                                Style="{StaticResource BadgeText}"
                                Foreground="{StaticResource YellowBrush}"
                                VerticalAlignment="Center" />
+                    <Button Content="Export"
+                            Command="{Binding ExportWingetCommand}"
+                            Style="{StaticResource LinkButton}"
+                            AutomationProperties.Name="Export WinGet manifest for this app"
+                            ToolTip="Download the release asset, calculate its SHA-256, and write a v1.6 WinGet manifest."
+                            Margin="8,-4,0,0" />
                     <Button Content="Hide"
                             Command="{Binding HideCommand}"
                             Style="{StaticResource LinkButton}"

@@ -50,6 +50,7 @@ LocalDesktopStore knows about all of those. It picks the right asset off each re
 - **Multi-owner settings editor** — add/remove extra GitHub users or organizations without editing JSON
 - **Hidden repo filtering** — hide a card directly from the catalog or manage hidden `owner/repo` entries in settings
 - **Optional GitHub PAT** — public limit is 60 req/h; with a PAT it's 5,000/h and unlocks private repos
+- **WinGet manifest export** — export a v1.6 singleton manifest per card, with a locally calculated installer hash and the appropriate MSI / Inno / NSIS / EXE / portable ZIP metadata
 - **Catppuccin Mocha dark theme** — matches LocalChromeStore exactly
 - **Activity log + crash log** — every install / uninstall / run / error is logged in-app and to disk
 - **Async** — every API call, download, and installer invocation runs off the UI thread
@@ -91,6 +92,8 @@ dotnet build src/LocalDesktopStore/LocalDesktopStore.csproj -c Release
 9. Click **Save and refresh**
 
 Every qualifying repo appears as a card. Click **Install** on a card — LocalDesktopStore downloads the asset to `%LOCALAPPDATA%\LocalDesktopStore\downloads\`, verifies the hash, runs the correct installer, and remembers what it installed. Click **Run** to launch. Click **Uninstall** to remove.
+
+Use **Export** on a card to write a WinGet v1.6 singleton manifest to `Desktop\manifests\<first-letter>\<owner>\<repo>\<version>\<owner>.<repo>.yaml`. The exporter hashes the downloaded release asset locally; review the generated MIT/license and installer metadata before submitting it with `wingetcreate`.
 
 ---
 

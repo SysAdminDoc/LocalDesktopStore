@@ -8,6 +8,7 @@ All notable changes to LocalDesktopStore are documented here. Format follows [Ke
 - **Authenticode verification and publisher pinning** (N6) — downloaded MSI/EXE installers must pass Windows `WinVerifyTrust` before execution. The trusted signer thumbprint and subject are stored in schema v2 of `installed.json`; a changed publisher requires explicit approval before the installer can start. Portable ZIPs retain their existing SHA-256 path and are noted as archive-level signature skips.
 - **Per-card crash-log access** (N10) — failed install and uninstall cards keep their inline error and now expose a "View crash log" link to the existing LocalDesktopStore logs directory.
 - **Accessibility names and live activity log** (N11) — interactive controls expose deliberate UI Automation names, and the activity log uses a polite live region for Narrator announcements.
+- **WinGet manifest export** (N12) — each card can download/hash its release asset and write a v1.6 singleton manifest under `manifests/<first-letter>/<owner>/<repo>/<version>/`, including the installer type, silent switches, architecture, SHA-256, and nested portable metadata where applicable.
 
 ### Changed
 - Refreshes now use a lockfile aligned with the framework-dependent project target, so locked restores no longer carry a stale `win-x64` runtime graph.

@@ -13,6 +13,7 @@ public sealed class AppCardViewModel : ViewModelBase
     private readonly InstallService _installer;
     private readonly GitHubService _github;
     private readonly SettingsService _settings;
+    private readonly WingetManifestExporter _wingetExporter;
     private readonly Func<AppSettings> _settingsAccessor;
     private readonly Action<string> _log;
     private readonly Action _refreshParent;
@@ -39,6 +40,7 @@ public sealed class AppCardViewModel : ViewModelBase
         _installer = installer;
         _github = github;
         _settings = settings;
+        _wingetExporter = new WingetManifestExporter(settings, github);
         _settingsAccessor = settingsAccessor;
         _log = log;
         _refreshParent = refreshParent;
@@ -50,6 +52,7 @@ public sealed class AppCardViewModel : ViewModelBase
         OpenRepoCommand = new RelayCommand(_ => OpenUrl(Info.RepoUrl));
         OpenInstallDirCommand = new RelayCommand(_ => OpenDir(), _ => CanOpenDir);
         OpenCrashLogCommand = new RelayCommand(_ => OpenCrashLogs());
+        ExportWingetCommand = new AsyncRelayCommand(ExportWingetAsync, _ => CanExport);
         HideCommand = new RelayCommand(_ => Hide());
         _hidden = _settingsAccessor().HiddenRepos.Contains(Repo, StringComparer.OrdinalIgnoreCase);
         _ = LoadIconAsync();
@@ -73,6 +76,7 @@ public sealed class AppCardViewModel : ViewModelBase
     public bool IsUpdateAvailable => IsInstalled
         && VersionCompare.IsRemoteNewer(_installed!.Version, Info.DisplayVersion);
     public bool CanInstall => HasAsset && !Busy;
+    public bool CanExport => HasAsset && !Busy;
     public bool CanRun => IsInstalled && !Busy;
     public bool IsHidden => _hidden;
     public bool CanOpenDir => IsInstalled && !Busy
@@ -111,6 +115,7 @@ public sealed class AppCardViewModel : ViewModelBase
             if (SetField(ref _busy, value))
             {
                 OnPropertyChanged(nameof(CanInstall));
+                OnPropertyChanged(nameof(CanExport));
                 OnPropertyChanged(nameof(CanRun));
                 OnPropertyChanged(nameof(CanOpenDir));
                 CommandManager.InvalidateRequerySuggested();
@@ -138,6 +143,7 @@ public sealed class AppCardViewModel : ViewModelBase
     public ICommand OpenRepoCommand { get; }
     public ICommand OpenInstallDirCommand { get; }
     public ICommand OpenCrashLogCommand { get; }
+    public ICommand ExportWingetCommand { get; }
     public ICommand HideCommand { get; }
 
     public async Task RunInstallAsync(CancellationToken ct)
@@ -258,6 +264,38 @@ public sealed class AppCardViewModel : ViewModelBase
         catch (Exception ex) { _log($"! open dir failed: {ex.Message}"); }
     }
 
+    private async Task ExportWingetAsync(object? _)
+    {
+        if (!CanExport) return;
+        Busy = true;
+        ErrorMessage = null;
+        try
+        {
+            BusyMessage = "Preparing WinGet manifest...";
+            var bytesProgress = new Progress<long>(b =>
+            {
+                BusyMessage = Info.AssetSizeBytes > 0
+                    ? $"Preparing installer {Math.Min(100, b * 100L / Info.AssetSizeBytes)}%"
+                    : $"Preparing installer {FormatSize(b)}";
+            });
+            var logProgress = new Progress<string>(_log);
+            var result = await _wingetExporter.ExportAsync(Info, logProgress, bytesProgress);
+            BusyMessage = "Manifest exported";
+            _log($"WinGet export ready: {result.ManifestPath}");
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+            _log($"! WinGet export failed for {Repo}: {ex.Message}");
+            OnPropertyChanged(nameof(HasError));
+        }
+        finally
+        {
+            Busy = false;
+            BusyMessage = null;
+        }
+    }
+
     private void OpenCrashLogs()
     {
         try
@@ -322,6 +360,7 @@ public sealed class AppCardViewModel : ViewModelBase
     {
         OnPropertyChanged(nameof(IsInstalled));
         OnPropertyChanged(nameof(CanInstall));
+        OnPropertyChanged(nameof(CanExport));
         OnPropertyChanged(nameof(CanRun));
         OnPropertyChanged(nameof(InstallButtonLabel));
         OnPropertyChanged(nameof(StatusBadge));
