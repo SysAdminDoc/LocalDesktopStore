@@ -76,6 +76,7 @@
                     <Button Content="Hide"
                             Command="{Binding HideCommand}"
                             Style="{StaticResource LinkButton}"
+                            AutomationProperties.Name="Hide this app"
                             ToolTip="Hide this app from the catalog."
                             Margin="8,-4,0,0" />
                 </StackPanel>
@@ -195,6 +196,7 @@
                         Content="View crash log"
                         Style="{StaticResource LinkButton}"
                         Command="{Binding OpenCrashLogCommand}"
+                        AutomationProperties.Name="View crash log for this app"
                         ToolTip="Open LocalDesktopStore's install and crash logs folder." />
             </Grid>
 
@@ -212,6 +214,7 @@
                         Content="{Binding InstallButtonLabel}"
                         Style="{StaticResource AccentButton}"
                         Command="{Binding InstallCommand}"
+                        AutomationProperties.Name="Install or update this app"
                         IsEnabled="{Binding CanInstall}"
                         MinWidth="96"
                         Margin="0,0,6,0" />
@@ -219,6 +222,7 @@
                         Content="Run"
                         Style="{StaticResource SuccessButton}"
                         Command="{Binding RunCommand}"
+                        AutomationProperties.Name="Run this app"
                         IsEnabled="{Binding CanRun}"
                         Visibility="{Binding IsInstalled, Converter={StaticResource BoolToVis}}"
                         Margin="0,0,6,0" />
@@ -226,18 +230,21 @@
                         Content="Uninstall"
                         Style="{StaticResource DangerButton}"
                         Command="{Binding UninstallCommand}"
+                        AutomationProperties.Name="Uninstall this app"
                         Visibility="{Binding IsInstalled, Converter={StaticResource BoolToVis}}"
                         Margin="0,0,6,0" />
                 <Button Grid.Column="4"
                         Content="Folder"
                         Command="{Binding OpenInstallDirCommand}"
+                        AutomationProperties.Name="Open this app's install folder"
                         IsEnabled="{Binding CanOpenDir}"
                         Visibility="{Binding IsInstalled, Converter={StaticResource BoolToVis}}"
                         Margin="0,0,6,0" />
                 <Button Grid.Column="5"
                         Content="Repo"
                         Style="{StaticResource LinkButton}"
-                        Command="{Binding OpenRepoCommand}" />
+                        Command="{Binding OpenRepoCommand}"
+                        AutomationProperties.Name="Open this app's repository" />
             </Grid>
         </Grid>
     </Border>

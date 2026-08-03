@@ -93,7 +93,8 @@
 
                     <Grid Grid.Column="0" Width="470" MinWidth="320">
                         <TextBox x:Name="SearchBox"
-                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
+                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                 AutomationProperties.Name="Search apps, repositories, or descriptions" />
                         <TextBlock Text="Search apps, repositories, or descriptions"
                                    Style="{StaticResource MuteText}"
                                    Margin="12,0,0,0"
@@ -105,17 +106,20 @@
                     <CheckBox Grid.Column="2"
                               Content="Installed only"
                               IsChecked="{Binding ShowInstalledOnly}"
+                              AutomationProperties.Name="Show installed apps only"
                               VerticalAlignment="Center"
                               Margin="18,0" />
 
                     <Button Grid.Column="4"
                             Content="Install folder"
                             Command="{Binding OpenInstallDirCommand}"
+                            AutomationProperties.Name="Open install folder"
                             Margin="0,0,8,0" />
 
                     <Button Grid.Column="5"
                             Content="{Binding UpdateAllButtonLabel}"
                             Command="{Binding UpdateAllCommand}"
+                            AutomationProperties.Name="Update all outdated apps"
                             ToolTip="Sequentially update every installed app whose remote release is newer than the local pin."
                             Visibility="{Binding HasOutdated, Converter={StaticResource BoolToVis}}"
                             Margin="0,0,8,0" />
@@ -123,12 +127,14 @@
                     <Button Grid.Column="6"
                             Content="{Binding RefreshButtonLabel}"
                             Command="{Binding RefreshCommand}"
+                            AutomationProperties.Name="Refresh catalog"
                             Style="{StaticResource AccentButton}"
                             Margin="0,0,8,0" />
 
                     <Button Grid.Column="7"
                             Content="Settings"
                             x:Name="SettingsToggleButton"
+                            AutomationProperties.Name="Show or hide settings"
                             Click="ToggleSettings_Click" />
                 </Grid>
 
@@ -165,6 +171,7 @@
                     <Button Grid.Column="1"
                             Content="Close"
                             Click="ToggleSettings_Click"
+                            AutomationProperties.Name="Close settings"
                             Style="{StaticResource LinkButton}"
                             VerticalAlignment="Top" />
                 </Grid>
@@ -180,7 +187,8 @@
                         <TextBlock Text="GitHub user or organization" Style="{StaticResource InputLabel}" />
                         <Grid>
                             <TextBox x:Name="GitHubUserBox"
-                                     Text="{Binding GitHubUserInput, UpdateSourceTrigger=PropertyChanged}" />
+                                     Text="{Binding GitHubUserInput, UpdateSourceTrigger=PropertyChanged}"
+                                     AutomationProperties.Name="GitHub user or organization" />
                             <TextBlock Text="example: SysAdminDoc"
                                        Style="{StaticResource MuteText}"
                                        Margin="12,0,0,0"
@@ -193,6 +201,7 @@
                                    Style="{StaticResource InputLabel}"
                                    Margin="0,12,0,5" />
                         <PasswordBox x:Name="GitHubTokenBox"
+                                     AutomationProperties.Name="GitHub personal access token"
                                      PasswordChanged="GitHubTokenBox_PasswordChanged" />
                         <TextBlock Text="Optional. Stored only in your local settings file; leave blank to use public GitHub rate limits."
                                    Style="{StaticResource MuteText}"
@@ -204,7 +213,8 @@
                                    Margin="0,12,0,5" />
                         <Grid>
                             <TextBox x:Name="InstallRootBox"
-                                     Text="{Binding InstallRootOverride, UpdateSourceTrigger=PropertyChanged}" />
+                                     Text="{Binding InstallRootOverride, UpdateSourceTrigger=PropertyChanged}"
+                                     AutomationProperties.Name="Install folder override" />
                             <TextBlock Text="(default %LOCALAPPDATA%\LocalDesktopStore\apps)"
                                        Style="{StaticResource MuteText}"
                                        Margin="12,0,0,0"
@@ -223,7 +233,8 @@
                             </Grid.ColumnDefinitions>
                             <Grid Grid.Column="0">
                                 <TextBox x:Name="ExtraOwnerBox"
-                                         Text="{Binding ExtraOwnerInput, UpdateSourceTrigger=PropertyChanged}" />
+                                         Text="{Binding ExtraOwnerInput, UpdateSourceTrigger=PropertyChanged}"
+                                         AutomationProperties.Name="Extra GitHub owner" />
                                 <TextBlock Text="owner or organization"
                                            Style="{StaticResource MuteText}"
                                            Margin="12,0,0,0"
@@ -234,6 +245,7 @@
                             <Button Grid.Column="1"
                                     Content="Add"
                                     Command="{Binding AddExtraOwnerCommand}"
+                                    AutomationProperties.Name="Add extra GitHub owner"
                                     Margin="8,0,0,0" />
                         </Grid>
                         <TextBlock Text="No extra owners configured."
@@ -241,6 +253,7 @@
                                    Margin="0,7,0,0"
                                    Visibility="{Binding HasExtraOwners, Converter={StaticResource BoolToVis}, ConverterParameter=invert}" />
                         <ListBox ItemsSource="{Binding ExtraOwners}"
+                                 AutomationProperties.Name="Extra GitHub owners"
                                  MaxHeight="82"
                                  Margin="0,7,0,0"
                                  Visibility="{Binding HasExtraOwners, Converter={StaticResource BoolToVis}}">
@@ -251,6 +264,7 @@
                                                 Content="Remove"
                                                 Command="{Binding DataContext.RemoveExtraOwnerCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                 CommandParameter="{Binding}"
+                                                AutomationProperties.Name="Remove extra GitHub owner"
                                                 Style="{StaticResource LinkButton}"
                                                 Margin="8,0,0,0" />
                                         <TextBlock Text="{Binding}"
@@ -265,10 +279,12 @@
 
                     <StackPanel Grid.Column="1" Margin="0,0,16,0">
                         <CheckBox Content="Filter by GitHub topic"
-                                  IsChecked="{Binding UseTopicFilter}" />
+                                  IsChecked="{Binding UseTopicFilter}"
+                                  AutomationProperties.Name="Filter discovery by GitHub topic" />
                         <Grid Margin="0,8,0,0">
                             <TextBox x:Name="TopicFilterBox"
                                      Text="{Binding TopicFilter, UpdateSourceTrigger=PropertyChanged}"
+                                     AutomationProperties.Name="GitHub topic filter"
                                      IsEnabled="{Binding UseTopicFilter}" />
                             <TextBlock Text="windows-app"
                                        Style="{StaticResource MuteText}"
@@ -284,6 +300,7 @@
 
                         <CheckBox Content="Verify SHA-256 sidecar"
                                   IsChecked="{Binding VerifyHashSidecar}"
+                                  AutomationProperties.Name="Verify SHA-256 sidecar before installation"
                                   Margin="0,16,0,0" />
                         <TextBlock Style="{StaticResource MuteText}"
                                    TextWrapping="Wrap"
@@ -300,7 +317,8 @@
                             </Grid.ColumnDefinitions>
                             <Grid Grid.Column="0">
                                 <TextBox x:Name="HiddenRepoBox"
-                                         Text="{Binding HiddenRepoInput, UpdateSourceTrigger=PropertyChanged}" />
+                                         Text="{Binding HiddenRepoInput, UpdateSourceTrigger=PropertyChanged}"
+                                         AutomationProperties.Name="Repository to hide" />
                                 <TextBlock Text="owner/repo"
                                            Style="{StaticResource MuteText}"
                                            Margin="12,0,0,0"
@@ -311,6 +329,7 @@
                             <Button Grid.Column="1"
                                     Content="Add"
                                     Command="{Binding AddHiddenRepoCommand}"
+                                    AutomationProperties.Name="Add hidden repository"
                                     Margin="8,0,0,0" />
                         </Grid>
                         <TextBlock Text="Hidden repos stay out of discovery and the current catalog view."
@@ -321,7 +340,8 @@
                                    Style="{StaticResource MuteText}"
                                    Margin="0,7,0,0"
                                    Visibility="{Binding HasHiddenRepos, Converter={StaticResource BoolToVis}, ConverterParameter=invert}" />
-                        <ListBox ItemsSource="{Binding HiddenRepos}"
+                            <ListBox ItemsSource="{Binding HiddenRepos}"
+                                 AutomationProperties.Name="Hidden repositories"
                                  MaxHeight="82"
                                  Margin="0,7,0,0"
                                  Visibility="{Binding HasHiddenRepos, Converter={StaticResource BoolToVis}}">
@@ -332,6 +352,7 @@
                                                 Content="Unhide"
                                                 Command="{Binding DataContext.RemoveHiddenRepoCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                 CommandParameter="{Binding}"
+                                                AutomationProperties.Name="Unhide hidden repository"
                                                 Style="{StaticResource LinkButton}"
                                                 Margin="8,0,0,0" />
                                         <TextBlock Text="{Binding}"
@@ -349,10 +370,12 @@
                                 VerticalAlignment="Bottom">
                         <Button Content="Save and refresh"
                                 Command="{Binding SaveAndRefreshCommand}"
+                                AutomationProperties.Name="Save settings and refresh catalog"
                                 Style="{StaticResource AccentButton}"
                                 Margin="0,0,0,8" />
                         <Button Content="Save settings"
-                                Command="{Binding SaveSettingsCommand}" />
+                                Command="{Binding SaveSettingsCommand}"
+                                AutomationProperties.Name="Save settings" />
                     </StackPanel>
                 </Grid>
             </Grid>
@@ -394,10 +417,12 @@
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                         <Button Content="Refresh catalog"
                                 Command="{Binding RefreshCommand}"
+                                AutomationProperties.Name="Refresh catalog"
                                 Style="{StaticResource AccentButton}"
                                 Margin="0,0,8,0" />
                         <Button Content="Open settings"
-                                Click="ToggleSettings_Click" />
+                                Click="ToggleSettings_Click"
+                                AutomationProperties.Name="Open settings" />
                     </StackPanel>
                 </StackPanel>
             </Border>
@@ -421,6 +446,7 @@
                 <Button Grid.Column="1"
                         Content="Clear"
                         Command="{Binding ClearLogCommand}"
+                        AutomationProperties.Name="Clear activity log"
                         Style="{StaticResource LinkButton}"
                         Margin="0,0,16,0" />
             </Grid>
@@ -428,6 +454,8 @@
 
         <Border Grid.Row="5" Background="{StaticResource CrustBrush}" Padding="16,10">
             <ListBox ItemsSource="{Binding LogLines}"
+                     AutomationProperties.Name="Activity log"
+                     AutomationProperties.LiveSetting="Polite"
                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                      ScrollViewer.VerticalScrollBarVisibility="Auto"
                      FontFamily="Cascadia Mono, Consolas"
