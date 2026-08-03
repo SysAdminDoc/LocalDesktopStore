@@ -27,7 +27,13 @@ public sealed class InstallService
 
     public void Reload() => _manifest = _settings.LoadManifest();
 
-    public async Task<InstalledApp> InstallAsync(AppInfo info, AppSettings cfg, IProgress<string>? log, IProgress<long>? bytes, CancellationToken ct = default)
+    public async Task<InstalledApp> InstallAsync(
+        AppInfo info,
+        AppSettings cfg,
+        IProgress<string>? log,
+        IProgress<long>? bytes,
+        CancellationToken ct = default,
+        Func<PublisherChangeWarning, Task<bool>>? confirmPublisherChange = null)
     {
         if (string.IsNullOrEmpty(info.AssetUrl) || string.IsNullOrEmpty(info.AssetName))
             throw new InvalidOperationException("No release asset to install.");
@@ -64,6 +70,43 @@ public sealed class InstallService
             }
         }
 
+        AuthenticodeVerificationResult? publisher = null;
+        if (info.Kind == ArtifactKind.PortableZip)
+        {
+            log?.Report("  ~ portable ZIP has no archive-level Authenticode signature; publisher pin skipped.");
+        }
+        else
+        {
+            log?.Report("Verifying Authenticode signature and trusted publisher...");
+            publisher = AuthenticodeVerifier.Verify(stagedFile);
+            if (!publisher.IsTrusted || string.IsNullOrEmpty(publisher.Thumbprint))
+                throw new InvalidOperationException($"Authenticode verification failed: {publisher.Detail}");
+
+            log?.Report($"  ✓ Authenticode OK: {publisher.Subject} [{publisher.Thumbprint}]");
+            var previous = Find(info.RepoOwner, info.RepoName);
+            if (!string.IsNullOrEmpty(previous?.PublisherCertThumbprint)
+                && !previous.PublisherCertThumbprint.Equals(publisher.Thumbprint, StringComparison.OrdinalIgnoreCase))
+            {
+                var warning = new PublisherChangeWarning(
+                    $"{info.RepoOwner}/{info.RepoName}",
+                    previous.PublisherCertThumbprint,
+                    previous.PublisherCertSubject,
+                    publisher.Thumbprint,
+                    publisher.Subject ?? "(subject unavailable)");
+                var approved = confirmPublisherChange is not null
+                    && await confirmPublisherChange(warning);
+                if (!approved)
+                {
+                    log?.Report("  ! Publisher changed — refusing to invoke the installer without explicit approval.");
+                    throw new InvalidOperationException(
+                        $"Publisher certificate changed from {previous.PublisherCertSubject ?? previous.PublisherCertThumbprint} "
+                        + $"to {publisher.Subject ?? publisher.Thumbprint}. Installation was not started.");
+                }
+
+                log?.Report("  ~ Publisher changed; continuing after explicit approval.");
+            }
+        }
+
         var refinedKind = info.Kind == ArtifactKind.PortableZip || info.Kind == ArtifactKind.Msi
             ? info.Kind
             : AssetClassifier.RefineFromFile(stagedFile, info.Kind);
@@ -79,6 +122,8 @@ public sealed class InstallService
             ArtifactKind.PortableZip => await InstallPortableAsync(info, cfg, stagedFile, log, ct),
             _ => throw new InvalidOperationException($"Unsupported artifact kind: {refinedKind}")
         };
+        record.PublisherCertThumbprint = publisher?.Thumbprint;
+        record.PublisherCertSubject = publisher?.Subject;
 
         // Replace any prior install row for this repo.
         _manifest.Apps.RemoveAll(e =>

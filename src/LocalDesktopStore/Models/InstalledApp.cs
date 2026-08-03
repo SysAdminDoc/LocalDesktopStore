@@ -29,11 +29,17 @@ public sealed class InstalledApp
     /// <summary>MSI ProductCode (registry subkey for MSI installs). Used for `msiexec /x`.</summary>
     public string? MsiProductCode { get; set; }
 
+    /// <summary>Normalized SHA-1 thumbprint of the trusted Authenticode signer at install time.</summary>
+    public string? PublisherCertThumbprint { get; set; }
+
+    /// <summary>Subject of the trusted Authenticode signer at install time, for display and diagnostics.</summary>
+    public string? PublisherCertSubject { get; set; }
+
     public string Key => $"{RepoOwner}/{RepoName}";
 }
 
 public sealed class InstalledAppsManifest
 {
-    public int Version { get; set; } = 1;
+    public int Version { get; set; } = 2;
     public List<InstalledApp> Apps { get; set; } = new();
 }

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.IO;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using LocalDesktopStore.Models;
@@ -158,7 +159,13 @@ public sealed class AppCardViewModel : ViewModelBase
                 }
             });
             var logProgress = new Progress<string>(_log);
-            _installed = await _installer.InstallAsync(Info, _settingsAccessor(), logProgress, bytesProgress, ct);
+            _installed = await _installer.InstallAsync(
+                Info,
+                _settingsAccessor(),
+                logProgress,
+                bytesProgress,
+                ct,
+                ConfirmPublisherChangeAsync);
             BusyMessage = "Installed";
             RaiseAllChanged();
             _refreshParent();
@@ -208,6 +215,24 @@ public sealed class AppCardViewModel : ViewModelBase
         if (_installed is null) return;
         var logProgress = new Progress<string>(_log);
         _installer.TryRun(_installed, logProgress);
+    }
+
+    private static Task<bool> ConfirmPublisherChangeAsync(PublisherChangeWarning warning)
+    {
+        var previous = warning.PreviousSubject ?? warning.PreviousThumbprint ?? "unknown publisher";
+        var current = warning.CurrentSubject;
+        var message =
+            $"The trusted publisher for {warning.Repo} changed.\n\n"
+            + $"Previously: {previous}\n"
+            + $"Now: {current}\n\n"
+            + "Only continue if you recognize this publisher change. The installer has not started yet.";
+        var choice = MessageBox.Show(
+            message,
+            "Publisher certificate changed",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning,
+            MessageBoxResult.No);
+        return Task.FromResult(choice == MessageBoxResult.Yes);
     }
 
     private void Hide()

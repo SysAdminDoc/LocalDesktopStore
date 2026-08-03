@@ -44,6 +44,7 @@ LocalDesktopStore knows about all of those. It picks the right asset off each re
 - **Run button** — launches the registered `.exe` (from `DisplayIcon` or `InstallLocation`) for installer-driven apps, the largest extracted `.exe` for portable apps
 - **Install-state detection** — pre/post snapshot of `HKLM`, `HKLM\WOW6432Node`, and `HKCU` uninstall keys, then diffs to find the new entry — far more reliable than name-matching
 - **SHA-256 sidecar verification** — refuses to install if `<asset>.sha256.txt` is present and doesn't match (matches the LocalChromeStore release convention)
+- **Authenticode publisher verification** — MSI/EXE installers must be trusted by Windows before they run; the signer thumbprint is pinned per installed repo and publisher changes require explicit approval
 - **Search and filter** — by name, repo, or description; toggle to show only installed
 - **Topic filter (optional)** — restrict discovery to repos tagged with a topic (default `windows-app`)
 - **Multi-owner settings editor** — add/remove extra GitHub users or organizations without editing JSON
@@ -86,7 +87,8 @@ dotnet build src/LocalDesktopStore/LocalDesktopStore.csproj -c Release
 5. *(Optional)* Add hidden repos as `owner/repo`, or hide a card from the catalog after refresh
 6. *(Optional)* Enable **Filter by topic** if you want to limit to repos tagged with `windows-app`
 7. Leave **Verify SHA-256 sidecar** on if your releases ship `.sha256.txt` sidecars (LocalChromeStore / LocalDesktopStore convention)
-8. Click **Save and refresh**
+8. Keep your MSI/EXE release assets Authenticode-signed; LocalDesktopStore refuses unsigned or untrusted installers and warns before a pinned publisher changes
+9. Click **Save and refresh**
 
 Every qualifying repo appears as a card. Click **Install** on a card — LocalDesktopStore downloads the asset to `%LOCALAPPDATA%\LocalDesktopStore\downloads\`, verifies the hash, runs the correct installer, and remembers what it installed. Click **Run** to launch. Click **Uninstall** to remove.
 
@@ -103,6 +105,8 @@ LocalDesktopStore decides what an asset is by both filename and content:
 | `*.exe` containing `Nullsoft Install System` / `Nullsoft.NSIS` (or filename has `nsis`) | NSIS | `<file> /S` |
 | `*.exe` with `setup` / `installer` in the filename and no signature match | Generic installer | runs interactive — let the user click through |
 | `*.zip` | Portable | extracts to `%LOCALAPPDATA%\LocalDesktopStore\apps\<owner>\<repo>\<version>\`, picks the largest non-uninstaller `.exe`, creates a Start Menu shortcut |
+
+Before an MSI or EXE installer is invoked, Windows `WinVerifyTrust` must accept its Authenticode signature. The certificate thumbprint and subject are recorded in `installed.json`; a later release signed by a different publisher requires an explicit approval prompt. Portable ZIP archives do not have an archive-level Authenticode signature, so they use the existing sidecar hash verification instead.
 
 If multiple eligible assets ship in the same release, MSI wins, then Inno, then NSIS, then portable ZIP.
 

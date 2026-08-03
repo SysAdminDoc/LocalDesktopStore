@@ -18,7 +18,7 @@ public interface IInstalledManifestMigrator
 
 public sealed class InstalledManifestMigrationRunner
 {
-    public const int CurrentSchemaVersion = 1;
+    public const int CurrentSchemaVersion = 2;
 
     private readonly List<IInstalledManifestMigrator> _migrators;
 
@@ -30,7 +30,7 @@ public sealed class InstalledManifestMigrationRunner
     }
 
     public static InstalledManifestMigrationRunner Default { get; } =
-        new(Array.Empty<IInstalledManifestMigrator>());
+        new(new IInstalledManifestMigrator[] { new InstalledManifestV1ToV2Migrator() });
 
     public InstalledAppsManifest Load(string json, JsonSerializerOptions opts)
     {
@@ -81,4 +81,17 @@ public sealed class InstalledManifestMigrationRunner
 
     private static InstalledAppsManifest Empty() =>
         new() { Version = CurrentSchemaVersion };
+}
+
+public sealed class InstalledManifestV1ToV2Migrator : IInstalledManifestMigrator
+{
+    public int FromVersion => 1;
+    public int ToVersion => 2;
+
+    public void Apply(JsonObject root)
+    {
+        // Publisher pin fields are nullable, so existing records remain valid and
+        // adopt a pin the next time the app is installed or updated.
+        root["Version"] = ToVersion;
+    }
 }
