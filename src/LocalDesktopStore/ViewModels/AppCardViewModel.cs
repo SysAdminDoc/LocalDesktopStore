@@ -49,6 +49,7 @@ public sealed class AppCardViewModel : ViewModelBase
         RunCommand = new RelayCommand(_ => Run(), _ => CanRun);
         OpenRepoCommand = new RelayCommand(_ => OpenUrl(Info.RepoUrl));
         OpenInstallDirCommand = new RelayCommand(_ => OpenDir(), _ => CanOpenDir);
+        OpenCrashLogCommand = new RelayCommand(_ => OpenCrashLogs());
         HideCommand = new RelayCommand(_ => Hide());
         _hidden = _settingsAccessor().HiddenRepos.Contains(Repo, StringComparer.OrdinalIgnoreCase);
         _ = LoadIconAsync();
@@ -136,6 +137,7 @@ public sealed class AppCardViewModel : ViewModelBase
     public ICommand RunCommand { get; }
     public ICommand OpenRepoCommand { get; }
     public ICommand OpenInstallDirCommand { get; }
+    public ICommand OpenCrashLogCommand { get; }
     public ICommand HideCommand { get; }
 
     public async Task RunInstallAsync(CancellationToken ct)
@@ -254,6 +256,21 @@ public sealed class AppCardViewModel : ViewModelBase
         if (string.IsNullOrEmpty(path) || !Directory.Exists(path)) return;
         try { Process.Start(new ProcessStartInfo("explorer.exe", $"\"{path}\"") { UseShellExecute = true }); }
         catch (Exception ex) { _log($"! open dir failed: {ex.Message}"); }
+    }
+
+    private void OpenCrashLogs()
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo("explorer.exe", $"\"{_settings.LogsDir}\"")
+            {
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex)
+        {
+            _log($"! open crash logs failed: {ex.Message}");
+        }
     }
 
     private void OpenUrl(string url)

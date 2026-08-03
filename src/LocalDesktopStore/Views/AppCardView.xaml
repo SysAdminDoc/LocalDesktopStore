@@ -177,14 +177,26 @@
                        Margin="0,0,0,6"
                        Visibility="{Binding Busy, Converter={StaticResource BoolToVis}}" />
 
-            <TextBlock Grid.Row="5"
-                       Text="{Binding ErrorMessage}"
-                       Foreground="{StaticResource RedBrush}"
-                       FontSize="11"
-                       FontWeight="SemiBold"
-                       TextWrapping="Wrap"
-                       Margin="0,0,0,8"
-                       Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}" />
+            <Grid Grid.Row="5"
+                  Margin="0,0,0,8"
+                  Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0"
+                           Text="{Binding ErrorMessage}"
+                           Foreground="{StaticResource RedBrush}"
+                           FontSize="11"
+                           FontWeight="SemiBold"
+                           TextWrapping="Wrap"
+                           Margin="0,0,8,0" />
+                <Button Grid.Column="1"
+                        Content="View crash log"
+                        Style="{StaticResource LinkButton}"
+                        Command="{Binding OpenCrashLogCommand}"
+                        ToolTip="Open LocalDesktopStore's install and crash logs folder." />
+            </Grid>
 
             <Grid Grid.Row="6">
                 <Grid.ColumnDefinitions>
