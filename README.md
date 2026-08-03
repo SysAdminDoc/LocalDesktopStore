@@ -39,6 +39,7 @@ LocalDesktopStore knows about all of those. It picks the right asset off each re
 
 - **GitHub-sourced discovery** — every repo whose latest release ships an MSI, NSIS / Inno EXE, portable ZIP, MSIX, or App Installer manifest appears as a card
 - **Smart asset classification** — picks the best installer per release, preferring MSI > App Installer > MSIX / MSIXBundle > NSIS / Inno > portable ZIP
+- **In-process artifact handlers** — discovery and lifecycle operations share one bundled `IArtifactHandler` registry; no remote assemblies, scripts, or dynamic plugin loads are permitted
 - **Inno-vs-NSIS detection** — file-name hints first, then a bounded byte scan for the real signature ("Inno Setup Setup Data" / "Nullsoft Install System") — refuses to silently use the wrong silent-flag set
 - **One-click install** — runs `msiexec /i ... /qb`, Inno `/SILENT /NORESTART`, NSIS `/S`, `Add-AppxPackage` for MSIX / MSIXBundle, or extract-and-shortcut for portable ZIPs
 - **App Installer handoff** — `.appinstaller` release URLs open Windows App Installer, which owns package dependencies and update policy; the app never evaluates the URL as a shell command
@@ -160,8 +161,9 @@ WPF on .NET 9 — MVVM, no third-party MVVM toolkit. The whole app is ~1,800 lin
 - `Models/` — plain data records (`AppInfo`, `InstalledApp`, `AppSettings`, `ArtifactKind`)
 - `Services/`
   - `GitHubService` — Octokit-backed discovery and asset download
-  - `AssetClassifier` — classify by name, refine by PE / file content
-  - `InstallService` — routes to MSI / Inno / NSIS / Generic / MSIX / App Installer / Portable handlers
+  - `ArtifactHandlerRegistry` / `IArtifactHandler` — bundled in-process handlers for MSI / Inno / NSIS / Generic / MSIX / App Installer / Portable assets, with guarded Velopack and Linux AppImage entries
+  - `AssetClassifier` — delegates name classification to the handler registry, then refines generic EXEs by PE / file content
+  - `InstallService` — host/orchestrator that invokes the selected handler for install / uninstall / run
   - `AppxPackageService` — standard-user MSIX install/uninstall, manifest identity lookup, certificate-trust errors, and App Installer URI handoff
   - `WingetDetectionService` — best-effort WinGet installed-catalog query and uninstall-metadata cross-check; unavailable COM falls back cleanly
   - `TaskbarPinService` — pointer-free shell context-verb pinning for the optional per-card taskbar action

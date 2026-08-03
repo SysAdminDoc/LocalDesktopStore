@@ -9,7 +9,9 @@ public enum ArtifactKind
     GenericExe,
     PortableZip,
     Msix,
-    AppInstaller
+    AppInstaller,
+    Velopack,
+    AppImage
 }
 
 public static class ArtifactKindExtensions
@@ -23,6 +25,8 @@ public static class ArtifactKindExtensions
         ArtifactKind.PortableZip => "Portable .zip",
         ArtifactKind.Msix => "MSIX / MSIXBundle",
         ArtifactKind.AppInstaller => "App Installer manifest",
+        ArtifactKind.Velopack => "Velopack update package",
+        ArtifactKind.AppImage => "AppImage",
         _ => "Unknown"
     };
 
@@ -31,10 +35,12 @@ public static class ArtifactKindExtensions
         ArtifactKind.Msi => 100,
         ArtifactKind.AppInstaller => 90,
         ArtifactKind.Msix => 85,
+        ArtifactKind.Velopack => 82,
         ArtifactKind.Inno => 80,
         ArtifactKind.Nsis => 75,
         ArtifactKind.GenericExe => 60,
         ArtifactKind.PortableZip => 40,
+        ArtifactKind.AppImage => 40,
         _ => 0
     };
 }

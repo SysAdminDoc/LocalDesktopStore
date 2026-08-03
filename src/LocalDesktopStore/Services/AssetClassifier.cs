@@ -12,39 +12,10 @@ namespace LocalDesktopStore.Services;
 /// </summary>
 public static class AssetClassifier
 {
+    private static readonly ArtifactHandlerRegistry Handlers = ArtifactHandlerRegistry.CreateBundled();
+
     public static ArtifactKind ClassifyByName(string assetName)
-    {
-        if (string.IsNullOrWhiteSpace(assetName)) return ArtifactKind.Unknown;
-        var n = assetName.ToLowerInvariant();
-
-        if (n.EndsWith(".msi")) return ArtifactKind.Msi;
-
-        if (n.EndsWith(".msix") || n.EndsWith(".msixbundle")) return ArtifactKind.Msix;
-
-        if (n.EndsWith(".appinstaller")) return ArtifactKind.AppInstaller;
-
-        if (n.EndsWith(".zip"))
-        {
-            // ZIPs that look like userland source dumps shouldn't be treated as portable apps —
-            // but at the asset-classifier level we can't tell. The download caller decides whether
-            // to trust the ZIP based on whether it contains a usable .exe.
-            return ArtifactKind.PortableZip;
-        }
-
-        if (n.EndsWith(".exe"))
-        {
-            // Filename hints — fast path.
-            if (n.Contains("innosetup") || n.Contains("inno-setup")) return ArtifactKind.Inno;
-            if (n.Contains("nsis")) return ArtifactKind.Nsis;
-            // Setup / installer flag — kind unresolved until we scan the bytes.
-            if (n.Contains("setup") || n.Contains("installer") || n.EndsWith("-setup.exe") || n.EndsWith("-installer.exe"))
-                return ArtifactKind.GenericExe;
-            // A bare .exe is treated as a portable launcher; we'll wrap it like a single-file app.
-            return ArtifactKind.GenericExe;
-        }
-
-        return ArtifactKind.Unknown;
-    }
+        => string.IsNullOrWhiteSpace(assetName) ? ArtifactKind.Unknown : Handlers.ClassifyByName(assetName);
 
     /// <summary>
     /// Given the file on disk, refine GenericExe → Inno or Nsis when possible.
@@ -55,7 +26,8 @@ public static class AssetClassifier
     /// </summary>
     public static ArtifactKind RefineFromFile(string path, ArtifactKind hint)
     {
-        if (hint is ArtifactKind.Msi or ArtifactKind.PortableZip or ArtifactKind.Msix or ArtifactKind.AppInstaller)
+        if (hint is ArtifactKind.Msi or ArtifactKind.PortableZip or ArtifactKind.Msix or ArtifactKind.AppInstaller
+            or ArtifactKind.Velopack or ArtifactKind.AppImage)
             return hint;
         try
         {

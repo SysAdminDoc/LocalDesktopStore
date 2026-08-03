@@ -12,6 +12,7 @@ public sealed class InstallService
     private readonly AppxPackageService _appx;
     private readonly WingetDetectionService _winget;
     private readonly DownloadCacheService _downloadCache;
+    private readonly ArtifactHandlerRegistry _artifactHandlers;
     private InstalledAppsManifest _manifest;
     private WingetDetectionSnapshot _wingetSnapshot =
         WingetDetectionSnapshot.Unavailable("WinGet oracle has not been queried yet.");
@@ -23,6 +24,7 @@ public sealed class InstallService
         _appx = new AppxPackageService();
         _winget = new WingetDetectionService();
         _downloadCache = new DownloadCacheService(settings.DownloadsDir);
+        _artifactHandlers = ArtifactHandlerRegistry.CreateBundled();
         _manifest = settings.LoadManifest();
     }
 
@@ -63,14 +65,18 @@ public sealed class InstallService
         if (string.IsNullOrEmpty(info.AssetUrl) || string.IsNullOrEmpty(info.AssetName))
             throw new InvalidOperationException("No release asset to install.");
 
-        if (info.Kind == ArtifactKind.AppInstaller)
+        var initialHandler = _artifactHandlers.Resolve(new ArtifactProbe(info.AssetName!, info.Kind));
+        if (initialHandler.Kind == ArtifactKind.AppInstaller)
         {
-            // App Installer owns the package graph and update policy described by the
-            // remote .appinstaller file. Do not create an installed.json row until the
-            // next refresh can observe the resulting package through the normal state path.
-            AppxPackageService.LaunchAppInstallerUri(info.AssetUrl!, log);
-            log?.Report("App Installer opened; refresh after its installation flow completes.");
-            return null;
+            return await initialHandler.InstallAsync(new ArtifactInstallContext
+            {
+                Info = info,
+                Settings = cfg,
+                StagedPath = string.Empty,
+                CustomInstallerArguments = null,
+                Log = log,
+                OpenAppInstallerUri = AppxPackageService.LaunchAppInstallerUri
+            }, ct);
         }
 
         var previous = Find(info.RepoOwner, info.RepoName);
@@ -127,9 +133,11 @@ public sealed class InstallService
         {
             log?.Report("  ~ portable ZIP has no archive-level Authenticode signature; publisher pin skipped.");
         }
-        else if (info.Kind == ArtifactKind.Msix)
+        else if (info.Kind is ArtifactKind.Msix or ArtifactKind.Velopack or ArtifactKind.AppImage)
         {
-            log?.Report("  ~ MSIX signature and certificate trust will be validated by Add-AppxPackage; no certificate will be imported.");
+            log?.Report(info.Kind == ArtifactKind.Msix
+                ? "  ~ MSIX signature and certificate trust will be validated by Add-AppxPackage; no certificate will be imported."
+                : "  ~ archive or executable trust is handled by the artifact-specific installer.");
         }
         else
         {
@@ -168,26 +176,28 @@ public sealed class InstallService
         if (refinedKind != info.Kind)
             log?.Report($"Asset refined to {refinedKind.DisplayName()} after byte scan.");
 
+        var handler = _artifactHandlers.Resolve(new ArtifactProbe(info.AssetName!, info.Kind, refinedKind, stagedFile));
+
         var customInstallerArguments = ResolveInstallerArguments(info, cfg, previous);
         if (!string.IsNullOrWhiteSpace(customInstallerArguments))
         {
             var argumentCount = InstallerArgumentParser.Parse(customInstallerArguments).Count;
-            if (refinedKind is ArtifactKind.Msi or ArtifactKind.Inno or ArtifactKind.Nsis or ArtifactKind.GenericExe)
+            if (handler.Kind is ArtifactKind.Msi or ArtifactKind.Inno or ArtifactKind.Nsis or ArtifactKind.GenericExe)
                 log?.Report($"Applying {argumentCount} custom installer argument(s).");
             else
                 log?.Report("  ~ custom installer arguments are ignored for this artifact kind.");
         }
 
-        InstalledApp record = refinedKind switch
+        var record = await handler.InstallAsync(new ArtifactInstallContext
         {
-            ArtifactKind.Msi => await InstallMsiAsync(info, stagedFile, customInstallerArguments, log, ct),
-            ArtifactKind.Inno => await RunInstallerAsync(info, stagedFile, refinedKind, "/SILENT /NORESTART", customInstallerArguments, log, ct),
-            ArtifactKind.Nsis => await RunInstallerAsync(info, stagedFile, refinedKind, "/S", customInstallerArguments, log, ct),
-            ArtifactKind.GenericExe => await RunInstallerAsync(info, stagedFile, refinedKind, null, customInstallerArguments, log, ct),
-            ArtifactKind.PortableZip => await InstallPortableAsync(info, cfg, stagedFile, log, ct),
-            ArtifactKind.Msix => await InstallMsixAsync(info, stagedFile, log, ct),
-            _ => throw new InvalidOperationException($"Unsupported artifact kind: {refinedKind}")
-        };
+            Info = info,
+            Settings = cfg,
+            StagedPath = stagedFile,
+            CustomInstallerArguments = customInstallerArguments,
+            Log = log,
+            InstallBundledAsync = (kind, token) => InstallBundledAsync(
+                kind, info, cfg, stagedFile, customInstallerArguments, log, token)
+        }, ct) ?? throw new InvalidOperationException($"Artifact handler '{handler.Id}' did not produce an install record.");
         record.PublisherCertThumbprint = publisher?.Thumbprint;
         record.PublisherCertSubject = publisher?.Subject;
         record.InstallerArguments = customInstallerArguments;
@@ -205,23 +215,14 @@ public sealed class InstallService
     public async Task UninstallAsync(InstalledApp app, IProgress<string>? log, CancellationToken ct = default)
     {
         log?.Report($"Uninstalling {app.RepoName} v{app.Version} ({app.Kind.DisplayName()})...");
-        switch (app.Kind)
+        var handler = _artifactHandlers.Resolve(new ArtifactProbe(
+            $"{app.RepoName}.{app.Kind}", app.Kind, app.Kind));
+        await handler.UninstallAsync(new ArtifactUninstallContext
         {
-            case ArtifactKind.Msi:
-                await UninstallMsiAsync(app, log, ct);
-                break;
-            case ArtifactKind.Inno:
-            case ArtifactKind.Nsis:
-            case ArtifactKind.GenericExe:
-                await UninstallExeAsync(app, log, ct);
-                break;
-            case ArtifactKind.PortableZip:
-                UninstallPortable(app, log);
-                break;
-            case ArtifactKind.Msix:
-                await _appx.UninstallAsync(app, log, ct);
-                break;
-        }
+            App = app,
+            Log = log,
+            UninstallBundledAsync = (kind, installed, token) => UninstallBundledAsync(kind, installed, log, token)
+        }, ct);
 
         _manifest.Apps.RemoveAll(e =>
             e.RepoOwner.Equals(app.RepoOwner, StringComparison.OrdinalIgnoreCase) &&
@@ -234,38 +235,32 @@ public sealed class InstallService
     {
         try
         {
-            string? exe = null;
-            if (app.Kind == ArtifactKind.PortableZip)
+            var handler = _artifactHandlers.Resolve(new ArtifactProbe(
+                $"{app.RepoName}.{app.Kind}", app.Kind, app.Kind));
+            return handler.TryRun(new ArtifactRunContext
             {
-                exe = !string.IsNullOrEmpty(app.ExecutablePath) && File.Exists(app.ExecutablePath)
-                    ? app.ExecutablePath
-                    : !string.IsNullOrEmpty(app.PortableRoot) ? FindPrimaryExe(app.PortableRoot!) : null;
-            }
-            else
-            {
-                exe = ResolveLaunchExe(app);
-            }
-
-            if (string.IsNullOrEmpty(exe) || !File.Exists(exe))
-            {
-                log?.Report($"! Could not locate executable for {app.RepoName}.");
-                return false;
-            }
-
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = exe,
-                UseShellExecute = true,
-                WorkingDirectory = Path.GetDirectoryName(exe) ?? ""
+                App = app,
+                Log = log,
+                ResolveLaunchTarget = ResolveLaunchTarget,
+                LaunchTarget = LaunchTarget
             });
-            log?.Report($"Launched {app.RepoName}.");
-            return true;
         }
         catch (Exception ex)
         {
             log?.Report($"! Run failed: {ex.Message}");
             return false;
         }
+    }
+
+    private static bool LaunchTarget(string target)
+    {
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = target,
+            UseShellExecute = true,
+            WorkingDirectory = Path.GetDirectoryName(target) ?? ""
+        });
+        return true;
     }
 
     public bool TryPinToTaskbar(InstalledApp app, IProgress<string>? log)
@@ -290,6 +285,17 @@ public sealed class InstallService
             log?.Report($"  ~ Taskbar pinning failed for {app.RepoName}: {ex.Message}");
             return false;
         }
+    }
+
+    private string? ResolveLaunchTarget(InstalledApp app)
+    {
+        if (app.Kind is ArtifactKind.PortableZip or ArtifactKind.AppImage)
+        {
+            return !string.IsNullOrEmpty(app.ExecutablePath) && File.Exists(app.ExecutablePath)
+                ? app.ExecutablePath
+                : !string.IsNullOrEmpty(app.PortableRoot) ? FindPrimaryExe(app.PortableRoot!) : null;
+        }
+        return ResolveLaunchExe(app);
     }
 
     private string? ResolveLaunchExe(InstalledApp app)
@@ -318,6 +324,56 @@ public sealed class InstallService
         if (!string.IsNullOrEmpty(app.InstallLocation) && Directory.Exists(app.InstallLocation))
             return FindPrimaryExe(app.InstallLocation);
         return null;
+    }
+
+    private async Task<InstalledApp?> InstallBundledAsync(
+        ArtifactKind kind,
+        AppInfo info,
+        AppSettings cfg,
+        string stagedPath,
+        string? customArguments,
+        IProgress<string>? log,
+        CancellationToken ct)
+    {
+        return kind switch
+        {
+            ArtifactKind.Msi => await InstallMsiAsync(info, stagedPath, customArguments, log, ct),
+            ArtifactKind.Inno => await RunInstallerAsync(info, stagedPath, kind, "/SILENT /NORESTART", customArguments, log, ct),
+            ArtifactKind.Nsis => await RunInstallerAsync(info, stagedPath, kind, "/S", customArguments, log, ct),
+            ArtifactKind.GenericExe => await RunInstallerAsync(info, stagedPath, kind, null, customArguments, log, ct),
+            ArtifactKind.PortableZip => await InstallPortableAsync(info, cfg, stagedPath, log, ct),
+            ArtifactKind.Msix => await InstallMsixAsync(info, stagedPath, log, ct),
+            ArtifactKind.AppImage => await InstallAppImageAsync(info, cfg, stagedPath, log, ct),
+            _ => throw new InvalidOperationException($"Unsupported artifact kind: {kind}")
+        };
+    }
+
+    private async Task UninstallBundledAsync(
+        ArtifactKind kind,
+        InstalledApp app,
+        IProgress<string>? log,
+        CancellationToken ct)
+    {
+        switch (kind)
+        {
+            case ArtifactKind.Msi:
+                await UninstallMsiAsync(app, log, ct);
+                break;
+            case ArtifactKind.Inno:
+            case ArtifactKind.Nsis:
+            case ArtifactKind.GenericExe:
+                await UninstallExeAsync(app, log, ct);
+                break;
+            case ArtifactKind.PortableZip:
+            case ArtifactKind.AppImage:
+                UninstallPortable(app, log);
+                break;
+            case ArtifactKind.Msix:
+                await _appx.UninstallAsync(app, log, ct);
+                break;
+            default:
+                throw new InvalidOperationException($"Unsupported uninstall kind: {kind}");
+        }
     }
 
     // ----- MSI -----
@@ -617,6 +673,45 @@ public sealed class InstallService
             PortableRoot = targetDir,
             ShortcutPath = lnkPath,
             ExecutablePath = exe
+        };
+    }
+
+    private async Task<InstalledApp> InstallAppImageAsync(AppInfo info, AppSettings cfg, string appImagePath, IProgress<string>? log, CancellationToken ct)
+    {
+        if (!OperatingSystem.IsLinux())
+            throw new PlatformNotSupportedException("AppImage installation is available only on Linux.");
+
+        var safeVersion = info.DisplayVersion.Replace('/', '_').Replace('\\', '_');
+        var targetDir = Path.Combine(_settings.AppsRoot(cfg), info.RepoOwner, info.RepoName, safeVersion);
+        if (Directory.Exists(targetDir))
+            Directory.Delete(targetDir, recursive: true);
+        Directory.CreateDirectory(targetDir);
+
+        var targetFile = Path.Combine(targetDir, Path.GetFileName(info.AssetName) ?? "app.appimage");
+        log?.Report($"Copying AppImage to {targetDir}");
+        await using (var source = new FileStream(appImagePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+        await using (var destination = new FileStream(targetFile, FileMode.Create, FileAccess.Write, FileShare.None))
+        {
+            await source.CopyToAsync(destination, ct);
+        }
+
+        var mode = File.GetUnixFileMode(targetFile)
+            | UnixFileMode.UserExecute
+            | UnixFileMode.GroupExecute
+            | UnixFileMode.OtherExecute;
+        File.SetUnixFileMode(targetFile, mode);
+        log?.Report($"Selected launcher: {Path.GetFileName(targetFile)}");
+
+        PruneOldPortableVersions(_settings.AppsRoot(cfg), info.RepoOwner, info.RepoName, safeVersion, log);
+        return new InstalledApp
+        {
+            RepoOwner = info.RepoOwner,
+            RepoName = info.RepoName,
+            Version = info.DisplayVersion,
+            Kind = ArtifactKind.AppImage,
+            InstalledAt = DateTimeOffset.UtcNow,
+            PortableRoot = targetDir,
+            ExecutablePath = targetFile
         };
     }
 
