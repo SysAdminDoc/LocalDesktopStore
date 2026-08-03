@@ -42,6 +42,14 @@ public sealed class InstallService
         CrossCheckWingetMetadata(log);
     }
 
+    public void UpdateInstallerArguments(InstalledApp app, string? arguments)
+    {
+        var current = Find(app.RepoOwner, app.RepoName);
+        if (current is null) return;
+        current.InstallerArguments = InstallerArgumentParser.Normalize(arguments);
+        _settings.SaveManifest(_manifest);
+    }
+
     public async Task<InstalledApp?> InstallAsync(
         AppInfo info,
         AppSettings cfg,
@@ -62,6 +70,8 @@ public sealed class InstallService
             log?.Report("App Installer opened; refresh after its installation flow completes.");
             return null;
         }
+
+        var previous = Find(info.RepoOwner, info.RepoName);
 
         var safeVersion = info.DisplayVersion.Replace('/', '_').Replace('\\', '_');
         var stagingDir = Path.Combine(_settings.DownloadsDir, $"{info.RepoName}-{safeVersion}");
@@ -112,7 +122,6 @@ public sealed class InstallService
                 throw new InvalidOperationException($"Authenticode verification failed: {publisher.Detail}");
 
             log?.Report($"  ✓ Authenticode OK: {publisher.Subject} [{publisher.Thumbprint}]");
-            var previous = Find(info.RepoOwner, info.RepoName);
             if (!string.IsNullOrEmpty(previous?.PublisherCertThumbprint)
                 && !previous.PublisherCertThumbprint.Equals(publisher.Thumbprint, StringComparison.OrdinalIgnoreCase))
             {
@@ -142,18 +151,29 @@ public sealed class InstallService
         if (refinedKind != info.Kind)
             log?.Report($"Asset refined to {refinedKind.DisplayName()} after byte scan.");
 
+        var customInstallerArguments = ResolveInstallerArguments(info, cfg, previous);
+        if (!string.IsNullOrWhiteSpace(customInstallerArguments))
+        {
+            var argumentCount = InstallerArgumentParser.Parse(customInstallerArguments).Count;
+            if (refinedKind is ArtifactKind.Msi or ArtifactKind.Inno or ArtifactKind.Nsis or ArtifactKind.GenericExe)
+                log?.Report($"Applying {argumentCount} custom installer argument(s).");
+            else
+                log?.Report("  ~ custom installer arguments are ignored for this artifact kind.");
+        }
+
         InstalledApp record = refinedKind switch
         {
-            ArtifactKind.Msi => await InstallMsiAsync(info, stagedFile, log, ct),
-            ArtifactKind.Inno => await RunInstallerAsync(info, stagedFile, refinedKind, "/SILENT /NORESTART", log, ct),
-            ArtifactKind.Nsis => await RunInstallerAsync(info, stagedFile, refinedKind, "/S", log, ct),
-            ArtifactKind.GenericExe => await RunInstallerAsync(info, stagedFile, refinedKind, null, log, ct),
+            ArtifactKind.Msi => await InstallMsiAsync(info, stagedFile, customInstallerArguments, log, ct),
+            ArtifactKind.Inno => await RunInstallerAsync(info, stagedFile, refinedKind, "/SILENT /NORESTART", customInstallerArguments, log, ct),
+            ArtifactKind.Nsis => await RunInstallerAsync(info, stagedFile, refinedKind, "/S", customInstallerArguments, log, ct),
+            ArtifactKind.GenericExe => await RunInstallerAsync(info, stagedFile, refinedKind, null, customInstallerArguments, log, ct),
             ArtifactKind.PortableZip => await InstallPortableAsync(info, cfg, stagedFile, log, ct),
             ArtifactKind.Msix => await InstallMsixAsync(info, stagedFile, log, ct),
             _ => throw new InvalidOperationException($"Unsupported artifact kind: {refinedKind}")
         };
         record.PublisherCertThumbprint = publisher?.Thumbprint;
         record.PublisherCertSubject = publisher?.Subject;
+        record.InstallerArguments = customInstallerArguments;
 
         // Replace any prior install row for this repo.
         _manifest.Apps.RemoveAll(e =>
@@ -285,7 +305,12 @@ public sealed class InstallService
 
     // ----- MSI -----
 
-    private async Task<InstalledApp> InstallMsiAsync(AppInfo info, string msiPath, IProgress<string>? log, CancellationToken ct)
+    private async Task<InstalledApp> InstallMsiAsync(
+        AppInfo info,
+        string msiPath,
+        string? customArguments,
+        IProgress<string>? log,
+        CancellationToken ct)
     {
         var preSnapshot = SnapshotEntries();
         var logPath = Path.Combine(_settings.LogsDir, $"msi-{info.RepoName}-{DateTime.Now:yyyyMMdd-HHmmss}.log");
@@ -301,6 +326,8 @@ public sealed class InstallService
         psi.ArgumentList.Add(msiPath);
         psi.ArgumentList.Add("/qb");
         psi.ArgumentList.Add("/norestart");
+        foreach (var argument in InstallerArgumentParser.Parse(customArguments))
+            psi.ArgumentList.Add(argument);
         psi.ArgumentList.Add("/L*v");
         psi.ArgumentList.Add(logPath);
         var proc = Process.Start(psi) ?? throw new InvalidOperationException("Failed to start msiexec.");
@@ -422,17 +449,27 @@ public sealed class InstallService
 
     // ----- EXE installers -----
 
-    private async Task<InstalledApp> RunInstallerAsync(AppInfo info, string exePath, ArtifactKind kind, string? silentArgs, IProgress<string>? log, CancellationToken ct)
+    private async Task<InstalledApp> RunInstallerAsync(
+        AppInfo info,
+        string exePath,
+        ArtifactKind kind,
+        string? silentArgs,
+        string? customArguments,
+        IProgress<string>? log,
+        CancellationToken ct)
     {
         var preSnapshot = SnapshotEntries();
-        var psi = new ProcessStartInfo(exePath) { UseShellExecute = true };
-        if (!string.IsNullOrEmpty(silentArgs))
+        var arguments = InstallerArgumentParser.Parse(silentArgs)
+            .Concat(InstallerArgumentParser.Parse(customArguments))
+            .ToList();
+        var psi = new ProcessStartInfo(exePath);
+        if (arguments.Count > 0)
         {
             psi.UseShellExecute = false;
             psi.CreateNoWindow = true;
-            foreach (var part in silentArgs.Split(' ', StringSplitOptions.RemoveEmptyEntries))
-                psi.ArgumentList.Add(part);
-            log?.Report($"Running {Path.GetFileName(exePath)} {silentArgs}");
+            foreach (var argument in arguments)
+                psi.ArgumentList.Add(argument);
+            log?.Report($"Running {Path.GetFileName(exePath)} with {arguments.Count} installer argument(s).");
         }
         else
         {
@@ -514,6 +551,17 @@ public sealed class InstallService
         var idx = commandLine.IndexOf(' ');
         if (idx < 0) return (commandLine, null);
         return (commandLine.Substring(0, idx), commandLine.Substring(idx + 1).Trim());
+    }
+
+    private static string? ResolveInstallerArguments(
+        AppInfo info,
+        AppSettings cfg,
+        InstalledApp? previous)
+    {
+        var key = $"{info.RepoOwner}/{info.RepoName}";
+        if (cfg.InstallPreferences?.TryGetValue(key, out var preference) == true)
+            return InstallerArgumentParser.Normalize(preference.InstallerArguments);
+        return InstallerArgumentParser.Normalize(previous?.InstallerArguments);
     }
 
     // ----- Portable -----

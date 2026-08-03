@@ -7,7 +7,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
-             Width="378" Height="350">
+             Width="378" Height="400">
     <UserControl.Resources>
         <conv:BoolToVisibilityConverter x:Key="BoolToVis" />
         <conv:NullToVisibilityConverter x:Key="NullToVis" />
@@ -19,6 +19,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -216,7 +217,25 @@
                         ToolTip="Open LocalDesktopStore's install and crash logs folder." />
             </Grid>
 
-            <StackPanel Grid.Row="6"
+            <Grid Grid.Row="6"
+                  Margin="0,0,0,8">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBlock Text="Custom installer arguments (optional)"
+                           Style="{StaticResource MuteText}"
+                           AutomationProperties.Name="Custom installer arguments label" />
+                <TextBox Grid.Row="1"
+                         Text="{Binding CustomInstallerArguments, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                         IsEnabled="{Binding CanCustomizeInstallerArguments}"
+                         MaxLength="4096"
+                         AutomationProperties.Name="Custom installer arguments"
+                         ToolTip="Optional switches appended to the safe defaults for MSI, Inno, NSIS, or generic EXE installers. Use Windows command-line quoting; values are passed as argument tokens, never evaluated by a shell."
+                         Margin="0,4,0,0" />
+            </Grid>
+
+            <StackPanel Grid.Row="7"
                         Orientation="Horizontal"
                         Margin="0,0,0,8">
                 <CheckBox Content="Run after install"
@@ -230,7 +249,7 @@
                           Margin="16,0,0,0" />
             </StackPanel>
 
-            <Grid Grid.Row="7">
+            <Grid Grid.Row="8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />

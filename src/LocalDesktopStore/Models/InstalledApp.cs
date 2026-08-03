@@ -26,6 +26,9 @@ public sealed class InstalledApp
     /// <summary>InstallLocation as captured from the registry, used to locate the launchable .exe.</summary>
     public string? InstallLocation { get; set; }
 
+    /// <summary>Optional custom install switches reused for later updates of this repo.</summary>
+    public string? InstallerArguments { get; set; }
+
     /// <summary>MSI ProductCode (registry subkey for MSI installs). Used for `msiexec /x`.</summary>
     public string? MsiProductCode { get; set; }
 

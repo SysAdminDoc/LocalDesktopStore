@@ -22,4 +22,5 @@ public sealed class AppInstallPreferences
 {
     public bool RunAfterInstall { get; set; }
     public bool PinToTaskbar { get; set; }
+    public string? InstallerArguments { get; set; }
 }

@@ -129,7 +129,8 @@ public static class CatalogTransferService
                 ? new AppInstallPreferences
                 {
                     RunAfterInstall = preference.RunAfterInstall,
-                    PinToTaskbar = preference.PinToTaskbar
+                    PinToTaskbar = preference.PinToTaskbar,
+                    InstallerArguments = preference.InstallerArguments
                 }
                 : null
         };

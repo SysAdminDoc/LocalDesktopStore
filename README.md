@@ -44,6 +44,7 @@ LocalDesktopStore knows about all of those. It picks the right asset off each re
 - **App Installer handoff** — `.appinstaller` release URLs open Windows App Installer, which owns package dependencies and update policy; the app never evaluates the URL as a shell command
 - **One-click uninstall** — uses the recorded `UninstallString` / `QuietUninstallString` for installer-driven apps, `Remove-AppxPackage` for MSIX, and removes the extraction folder + Start Menu shortcut for portable apps
 - **Per-card post-install actions** — optionally launch an app after install/update or ask Windows to pin its resolved launch target to the taskbar; preferences persist by `owner/repo`
+- **Custom installer arguments** — per-card MSI / Inno / NSIS / EXE switches are validated with Windows quoting rules, passed as argument tokens without shell evaluation, and stored in `installed.json` for later updates
 - **Run button** — launches the registered `.exe` (from `DisplayIcon` or `InstallLocation`) for installer-driven apps, the largest extracted `.exe` for portable apps
 - **Install-state detection** — pre/post snapshot of `HKLM`, `HKLM\WOW6432Node`, and `HKCU` uninstall keys, then diffs to find the new entry — far more reliable than name-matching
 - **WinGet detection oracle** — refreshes can query WinGet's installed-package catalog through its COM API and cross-check recorded uninstall metadata; if the WinGet server is unavailable, the registry diff remains authoritative
@@ -108,6 +109,8 @@ Every qualifying repo appears as a card. Click **Install** on a card — LocalDe
 
 Use the per-card **Run after install** and **Pin after install** checkboxes when you want an install or update to finish with a launch or taskbar action. The pin option uses the Windows shell `pintotaskbar` verb and reports a clear activity-log message when Windows does not expose a pin-capable launch target; it never injects input or silently changes an unrelated shortcut.
 
+For installer-driven cards, enter optional **Custom installer arguments** such as `INSTALLDIR="C:\Program Files\Example"` or `/D="C:\Tools"`. LocalDesktopStore keeps the known safe defaults, appends the parsed override tokens, and carries the saved value into later updates; portable ZIP, MSIX, and App Installer cards leave this field disabled.
+
 Use **Export** on a card to write a WinGet v1.6 singleton manifest to `Desktop\manifests\<first-letter>\<owner>\<repo>\<version>\<owner>.<repo>.yaml`. The exporter hashes the downloaded release asset locally; review the generated MIT/license and installer metadata before submitting it with `wingetcreate`.
 
 ---
@@ -160,6 +163,7 @@ WPF on .NET 9 — MVVM, no third-party MVVM toolkit. The whole app is ~1,800 lin
   - `AppxPackageService` — standard-user MSIX install/uninstall, manifest identity lookup, certificate-trust errors, and App Installer URI handoff
   - `WingetDetectionService` — best-effort WinGet installed-catalog query and uninstall-metadata cross-check; unavailable COM falls back cleanly
   - `TaskbarPinService` — pointer-free shell context-verb pinning for the optional per-card taskbar action
+  - `InstallerArgumentParser` — Windows-compatible quoting validation and tokenization for custom installer switches
   - `UninstallRegistry` — reads `HKLM`, `HKLM\WOW6432Node`, `HKCU` uninstall keys
   - `HashVerifier` — `<asset>.sha256.txt` sidecar verification
   - `ShortcutService` — creates Start Menu `.lnk` files via `IShellLink` COM

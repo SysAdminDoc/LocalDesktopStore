@@ -67,7 +67,15 @@ public sealed class SettingsService
             settings.InstallPreferences ??= new Dictionary<string, AppInstallPreferences>(StringComparer.OrdinalIgnoreCase);
             settings.InstallPreferences = settings.InstallPreferences
                 .Where(pair => pair.Value is not null && !string.IsNullOrWhiteSpace(pair.Key))
-                .ToDictionary(pair => pair.Key.Trim(), pair => pair.Value!, StringComparer.OrdinalIgnoreCase);
+                .ToDictionary(
+                    pair => pair.Key.Trim(),
+                    pair => new AppInstallPreferences
+                    {
+                        RunAfterInstall = pair.Value!.RunAfterInstall,
+                        PinToTaskbar = pair.Value.PinToTaskbar,
+                        InstallerArguments = NormalizeInstallerArguments(pair.Value.InstallerArguments)
+                    },
+                    StringComparer.OrdinalIgnoreCase);
             return settings;
         }
         catch { return new AppSettings(); }
@@ -84,12 +92,21 @@ public sealed class SettingsService
         if (!File.Exists(ManifestPath))
             return new InstalledAppsManifest { Version = InstalledManifestMigrationRunner.CurrentSchemaVersion };
         var json = File.ReadAllText(ManifestPath);
-        return _manifestMigrator.Load(json, JsonOpts);
+        var manifest = _manifestMigrator.Load(json, JsonOpts);
+        foreach (var app in manifest.Apps)
+            app.InstallerArguments = NormalizeInstallerArguments(app.InstallerArguments);
+        return manifest;
     }
 
     public void SaveManifest(InstalledAppsManifest manifest)
     {
         var json = JsonSerializer.Serialize(manifest, JsonOpts);
         File.WriteAllText(ManifestPath, json);
+    }
+
+    private static string? NormalizeInstallerArguments(string? arguments)
+    {
+        try { return InstallerArgumentParser.Normalize(arguments); }
+        catch { return null; }
     }
 }

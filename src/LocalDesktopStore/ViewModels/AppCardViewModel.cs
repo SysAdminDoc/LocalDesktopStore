@@ -27,6 +27,7 @@ public sealed class AppCardViewModel : ViewModelBase
     private bool _selected;
     private bool _runAfterInstall;
     private bool _pinToTaskbar;
+    private string _customInstallerArguments = string.Empty;
     private readonly Action? _selectionChanged;
 
     public AppInfo Info { get; }
@@ -54,6 +55,16 @@ public sealed class AppCardViewModel : ViewModelBase
         var preferences = _settingsAccessor().InstallPreferences?.GetValueOrDefault(Repo);
         _runAfterInstall = preferences?.RunAfterInstall == true;
         _pinToTaskbar = preferences?.PinToTaskbar == true;
+        try
+        {
+            _customInstallerArguments = InstallerArgumentParser.Normalize(
+                preferences?.InstallerArguments ?? _installed?.InstallerArguments)
+                ?? string.Empty;
+        }
+        catch (Exception ex)
+        {
+            _log($"! Invalid saved installer arguments were ignored for {Repo}: {ex.Message}");
+        }
 
         InstallCommand = new AsyncRelayCommand(_ => RunInstallAsync(CancellationToken.None), _ => CanInstall);
         UninstallCommand = new AsyncRelayCommand(_ => UninstallAsync(), _ => IsInstalled && !Busy);
@@ -105,6 +116,28 @@ public sealed class AppCardViewModel : ViewModelBase
         set
         {
             if (SetField(ref _pinToTaskbar, value))
+                SaveInstallPreferences();
+        }
+    }
+    public bool CanCustomizeInstallerArguments => Info.Kind is
+        ArtifactKind.Msi or ArtifactKind.Inno or ArtifactKind.Nsis or ArtifactKind.GenericExe;
+    public string CustomInstallerArguments
+    {
+        get => _customInstallerArguments;
+        set
+        {
+            string normalized;
+            try
+            {
+                normalized = InstallerArgumentParser.Normalize(value) ?? string.Empty;
+            }
+            catch (Exception ex)
+            {
+                _log($"! Custom installer arguments were rejected for {Repo}: {ex.Message}");
+                return;
+            }
+
+            if (SetField(ref _customInstallerArguments, normalized))
                 SaveInstallPreferences();
         }
     }
@@ -311,24 +344,28 @@ public sealed class AppCardViewModel : ViewModelBase
 
     private void SaveInstallPreferences()
     {
-        var cfg = _settingsAccessor();
-        cfg.InstallPreferences ??= new Dictionary<string, AppInstallPreferences>(StringComparer.OrdinalIgnoreCase);
-        if (!RunAfterInstall && !PinToTaskbar)
-        {
-            cfg.InstallPreferences.Remove(Repo);
-        }
-        else
-        {
-            cfg.InstallPreferences[Repo] = new AppInstallPreferences
-            {
-                RunAfterInstall = RunAfterInstall,
-                PinToTaskbar = PinToTaskbar
-            };
-        }
-
         try
         {
+            var cfg = _settingsAccessor();
+            cfg.InstallPreferences ??= new Dictionary<string, AppInstallPreferences>(StringComparer.OrdinalIgnoreCase);
+            var installerArguments = InstallerArgumentParser.Normalize(CustomInstallerArguments);
+            if (!RunAfterInstall && !PinToTaskbar && installerArguments is null)
+            {
+                cfg.InstallPreferences.Remove(Repo);
+            }
+            else
+            {
+                cfg.InstallPreferences[Repo] = new AppInstallPreferences
+                {
+                    RunAfterInstall = RunAfterInstall,
+                    PinToTaskbar = PinToTaskbar,
+                    InstallerArguments = installerArguments
+                };
+            }
+
             _settings.Save(cfg);
+            if (_installed is not null)
+                _installer.UpdateInstallerArguments(_installed, installerArguments);
         }
         catch (Exception ex)
         {

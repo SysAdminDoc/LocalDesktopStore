@@ -16,6 +16,7 @@ All notable changes to LocalDesktopStore are documented here. Format follows [Ke
 - **MSIX and App Installer support** (X5) — `.msix` / `.msixbundle` assets install and uninstall through current-user `Add-AppxPackage` / `Remove-AppxPackage`, while `.appinstaller` release URLs open the Windows App Installer protocol. Certificate trust failures are explicit and no certificate is imported automatically.
 - **WinGet detection oracle** (X6) — refreshes query the local WinGet installed-package catalog through `Microsoft.WindowsPackageManager.ComInterop`, cross-check recorded uninstall metadata, and keep registry detection authoritative when the optional COM server is unavailable.
 - **Post-install card actions** (X8) — per-repository preferences can launch the app after an install/update and invoke Windows' pointer-free `pintotaskbar` shell verb for taskbar pinning; unsupported targets are reported without failing the installation.
+- **Custom installer arguments** (X9) — per-card MSI / Inno / NSIS / EXE overrides use Windows command-line quoting, are passed through `ProcessStartInfo.ArgumentList`, and persist in `installed.json` so updates reuse them.
 
 ### Changed
 - Refreshes now use a lockfile aligned with the framework-dependent project target, so locked restores no longer carry a stale `win-x64` runtime graph.
