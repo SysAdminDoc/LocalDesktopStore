@@ -10,13 +10,17 @@ public sealed class InstallService
     private readonly SettingsService _settings;
     private readonly GitHubService _github;
     private readonly AppxPackageService _appx;
+    private readonly WingetDetectionService _winget;
     private InstalledAppsManifest _manifest;
+    private WingetDetectionSnapshot _wingetSnapshot =
+        WingetDetectionSnapshot.Unavailable("WinGet oracle has not been queried yet.");
 
     public InstallService(SettingsService settings, GitHubService github)
     {
         _settings = settings;
         _github = github;
         _appx = new AppxPackageService();
+        _winget = new WingetDetectionService();
         _manifest = settings.LoadManifest();
     }
 
@@ -27,7 +31,16 @@ public sealed class InstallService
             e.RepoOwner.Equals(repoOwner, StringComparison.OrdinalIgnoreCase) &&
             e.RepoName.Equals(repoName, StringComparison.OrdinalIgnoreCase));
 
+    public WingetDetectionSnapshot WingetSnapshot => _wingetSnapshot;
+
     public void Reload() => _manifest = _settings.LoadManifest();
+
+    public async Task ReloadAsync(IProgress<string>? log = null, CancellationToken ct = default)
+    {
+        _manifest = _settings.LoadManifest();
+        _wingetSnapshot = await _winget.QueryInstalledAsync(log, ct);
+        CrossCheckWingetMetadata(log);
+    }
 
     public async Task<InstalledApp?> InstallAsync(
         AppInfo info,
@@ -340,6 +353,48 @@ public sealed class InstallService
             InstallLocation = result.InstallLocation
         };
     }
+
+    private void CrossCheckWingetMetadata(IProgress<string>? log)
+    {
+        if (!_wingetSnapshot.IsAvailable) return;
+
+        foreach (var app in _manifest.Apps)
+        {
+            var package = _wingetSnapshot.FindFor(app.RepoOwner, app.RepoName);
+            if (package is null) continue;
+
+            var wingetCommands = new[]
+                {
+                    package.StandardUninstallCommand,
+                    package.SilentUninstallCommand
+                }
+                .Where(command => !string.IsNullOrWhiteSpace(command))
+                .Select(command => command!)
+                .ToList();
+            if (!string.IsNullOrWhiteSpace(app.UninstallCommand)
+                && wingetCommands.Count > 0
+                && !wingetCommands.Any(command => CommandsOverlap(app.UninstallCommand!, command)))
+            {
+                log?.Report($"  ~ WinGet cross-check differs for {app.RepoOwner}/{app.RepoName}; keeping LDS's recorded registry uninstall command.");
+            }
+            else
+            {
+                log?.Report($"  ✓ WinGet cross-check matched {app.RepoOwner}/{app.RepoName} ({package.Id} v{package.Version}).");
+            }
+        }
+    }
+
+    private static bool CommandsOverlap(string left, string right)
+    {
+        var normalizedLeft = NormalizeCommand(left);
+        var normalizedRight = NormalizeCommand(right);
+        return normalizedLeft.Equals(normalizedRight, StringComparison.OrdinalIgnoreCase)
+            || normalizedLeft.Contains(normalizedRight, StringComparison.OrdinalIgnoreCase)
+            || normalizedRight.Contains(normalizedLeft, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string NormalizeCommand(string command)
+        => string.Join(' ', command.Trim().Trim('"').Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
 
     // ----- EXE installers -----
 

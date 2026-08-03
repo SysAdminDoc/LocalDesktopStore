@@ -45,6 +45,7 @@ LocalDesktopStore knows about all of those. It picks the right asset off each re
 - **One-click uninstall** — uses the recorded `UninstallString` / `QuietUninstallString` for installer-driven apps, `Remove-AppxPackage` for MSIX, and removes the extraction folder + Start Menu shortcut for portable apps
 - **Run button** — launches the registered `.exe` (from `DisplayIcon` or `InstallLocation`) for installer-driven apps, the largest extracted `.exe` for portable apps
 - **Install-state detection** — pre/post snapshot of `HKLM`, `HKLM\WOW6432Node`, and `HKCU` uninstall keys, then diffs to find the new entry — far more reliable than name-matching
+- **WinGet detection oracle** — refreshes can query WinGet's installed-package catalog through its COM API and cross-check recorded uninstall metadata; if the WinGet server is unavailable, the registry diff remains authoritative
 - **SHA-256 sidecar verification** — refuses to install if `<asset>.sha256.txt` is present and doesn't match (matches the LocalChromeStore release convention)
 - **Authenticode publisher verification** — MSI/EXE installers must be trusted by Windows before they run; the signer thumbprint is pinned per installed repo and publisher changes require explicit approval. MSIX certificates are validated by Windows Appx deployment, and LDS never imports them
 - **Search and filter** — by name, repo, or description; toggle to show only installed
@@ -79,7 +80,7 @@ Requires the [.NET 9 Desktop Runtime](https://dotnet.microsoft.com/download/dotn
 git clone https://github.com/SysAdminDoc/LocalDesktopStore.git
 cd LocalDesktopStore
 dotnet build src/LocalDesktopStore/LocalDesktopStore.csproj -c Release
-./src/LocalDesktopStore/bin/Release/net9.0-windows/LocalDesktopStore.exe
+./src/LocalDesktopStore/bin/Release/net9.0-windows10.0.26100.0/LocalDesktopStore.exe
 ```
 
 ---
@@ -154,6 +155,7 @@ WPF on .NET 9 — MVVM, no third-party MVVM toolkit. The whole app is ~1,800 lin
   - `AssetClassifier` — classify by name, refine by PE / file content
   - `InstallService` — routes to MSI / Inno / NSIS / Generic / MSIX / App Installer / Portable handlers
   - `AppxPackageService` — standard-user MSIX install/uninstall, manifest identity lookup, certificate-trust errors, and App Installer URI handoff
+  - `WingetDetectionService` — best-effort WinGet installed-catalog query and uninstall-metadata cross-check; unavailable COM falls back cleanly
   - `UninstallRegistry` — reads `HKLM`, `HKLM\WOW6432Node`, `HKCU` uninstall keys
   - `HashVerifier` — `<asset>.sha256.txt` sidecar verification
   - `ShortcutService` — creates Start Menu `.lnk` files via `IShellLink` COM
@@ -165,7 +167,7 @@ WPF on .NET 9 — MVVM, no third-party MVVM toolkit. The whole app is ~1,800 lin
 - `Views/` — `AppCardView` user control + the main window
 - `Themes/` — Catppuccin Mocha and Latte resource dictionaries plus the shared runtime-switchable control styles
 
-Install-state detection runs as a registry diff: snapshot uninstall keys before invoking the installer, snapshot again afterward, take the new entry. That's far more reliable than trying to guess the installer's `DisplayName` from the repo name. We never write to the registry — the installer does.
+Install-state detection runs as a registry diff: snapshot uninstall keys before invoking the installer, snapshot again afterward, take the new entry. That's far more reliable than trying to guess the installer's `DisplayName` from the repo name. On refresh, the optional WinGet oracle provides an independent installed-package view and reports uninstall-command differences without replacing the recorded registry command. We never write to the registry — the installer does.
 
 ---
 
@@ -177,7 +179,7 @@ See [ROADMAP.md](ROADMAP.md). Highlights:
 - **Shipped** — Authenticode publisher pinning, per-card error/crash-log links, accessibility names/live log, WinGet manifest export, and Catppuccin Latte runtime theming.
 - **Shipped next** — scheduled background checks and bulk operations.
 - **Shipped next** — catalog import/export and MSIX / App Installer support.
-- **Next** — WinGet COM detection.
+- **Shipped** — WinGet COM detection oracle with a safe registry fallback when the local WinGet server is unavailable.
 - **v0.4.0** — Cross-platform port via Avalonia (Linux / macOS package equivalents — `.deb`, `.dmg`).
 
 ---

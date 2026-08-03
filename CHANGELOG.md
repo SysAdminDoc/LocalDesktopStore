@@ -14,6 +14,7 @@ All notable changes to LocalDesktopStore are documented here. Format follows [Ke
 - **Bulk selection operations** (X3) — card checkboxes reveal sequential install, update, and uninstall commands with one aggregate status banner and per-card error attribution.
 - **Catalog file transfer** (X4) — File → Export/Import round-trips owners, hidden app overrides, preferences, and version pins through a bounded, validated `.lds.json` document without exporting the GitHub PAT.
 - **MSIX and App Installer support** (X5) — `.msix` / `.msixbundle` assets install and uninstall through current-user `Add-AppxPackage` / `Remove-AppxPackage`, while `.appinstaller` release URLs open the Windows App Installer protocol. Certificate trust failures are explicit and no certificate is imported automatically.
+- **WinGet detection oracle** (X6) — refreshes query the local WinGet installed-package catalog through `Microsoft.WindowsPackageManager.ComInterop`, cross-check recorded uninstall metadata, and keep registry detection authoritative when the optional COM server is unavailable.
 
 ### Changed
 - Refreshes now use a lockfile aligned with the framework-dependent project target, so locked restores no longer carry a stale `win-x64` runtime graph.

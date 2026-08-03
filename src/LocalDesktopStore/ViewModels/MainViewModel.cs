@@ -341,7 +341,7 @@ public sealed class MainViewModel : ViewModelBase
             var infos = await _github.DiscoverAsync(_settings, logProgress);
             // Re-read installed.json so cards built below see the freshest install state
             // (e.g. an out-of-band install that ran while the app was open).
-            _installer.Reload();
+            await _installer.ReloadAsync(logProgress);
             Apps.Clear();
             foreach (var info in infos)
             {
