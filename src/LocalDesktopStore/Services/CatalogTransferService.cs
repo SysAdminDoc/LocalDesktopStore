@@ -26,6 +26,7 @@ public sealed class CatalogAppEntry
     public string? InstalledVersion { get; set; }
     public string? VersionPin { get; set; }
     public ArtifactKind? InstalledKind { get; set; }
+    public AppInstallPreferences? InstallPreferences { get; set; }
 }
 
 public static class CatalogTransferService
@@ -53,9 +54,11 @@ public static class CatalogTransferService
         var installedByKey = installed.ToDictionary(app => app.Key, StringComparer.OrdinalIgnoreCase);
         var hidden = new HashSet<string>(settings.HiddenRepos ?? new(), StringComparer.OrdinalIgnoreCase);
         var pins = settings.CatalogVersionPins ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var preferences = settings.InstallPreferences ?? new Dictionary<string, AppInstallPreferences>(StringComparer.OrdinalIgnoreCase);
         var keys = hidden
             .Concat(installedByKey.Keys)
             .Concat(pins.Keys)
+            .Concat(preferences.Keys)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(key => key, StringComparer.OrdinalIgnoreCase);
 
@@ -68,7 +71,7 @@ public static class CatalogTransferService
             TopicFilter = settings.TopicFilter?.Trim() ?? string.Empty,
             VerifyHashSidecar = settings.VerifyHashSidecar,
             InstallRootOverride = settings.InstallRootOverride,
-            Apps = keys.Select(key => CreateEntry(key, hidden, pins, installedByKey)).ToList()
+            Apps = keys.Select(key => CreateEntry(key, hidden, pins, preferences, installedByKey)).ToList()
         };
 
         var directory = Path.GetDirectoryName(Path.GetFullPath(path));
@@ -105,6 +108,7 @@ public static class CatalogTransferService
         string key,
         HashSet<string> hidden,
         IReadOnlyDictionary<string, string> pins,
+        IReadOnlyDictionary<string, AppInstallPreferences> preferences,
         IReadOnlyDictionary<string, InstalledApp> installed)
     {
         var separator = key.IndexOf('/');
@@ -120,7 +124,14 @@ public static class CatalogTransferService
             Hidden = hidden.Contains(key),
             InstalledVersion = installedApp?.Version,
             VersionPin = pins.TryGetValue(key, out var pin) ? pin : installedApp?.Version,
-            InstalledKind = installedApp?.Kind
+            InstalledKind = installedApp?.Kind,
+            InstallPreferences = preferences.TryGetValue(key, out var preference)
+                ? new AppInstallPreferences
+                {
+                    RunAfterInstall = preference.RunAfterInstall,
+                    PinToTaskbar = preference.PinToTaskbar
+                }
+                : null
         };
     }
 

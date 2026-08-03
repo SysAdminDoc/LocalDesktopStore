@@ -25,6 +25,8 @@ public sealed class AppCardViewModel : ViewModelBase
     private BitmapImage? _icon;
     private bool _hidden;
     private bool _selected;
+    private bool _runAfterInstall;
+    private bool _pinToTaskbar;
     private readonly Action? _selectionChanged;
 
     public AppInfo Info { get; }
@@ -49,6 +51,9 @@ public sealed class AppCardViewModel : ViewModelBase
         _refreshParent = refreshParent;
         _selectionChanged = selectionChanged;
         _installed = installer.Find(info.RepoOwner, info.RepoName);
+        var preferences = _settingsAccessor().InstallPreferences?.GetValueOrDefault(Repo);
+        _runAfterInstall = preferences?.RunAfterInstall == true;
+        _pinToTaskbar = preferences?.PinToTaskbar == true;
 
         InstallCommand = new AsyncRelayCommand(_ => RunInstallAsync(CancellationToken.None), _ => CanInstall);
         UninstallCommand = new AsyncRelayCommand(_ => UninstallAsync(), _ => IsInstalled && !Busy);
@@ -85,6 +90,24 @@ public sealed class AppCardViewModel : ViewModelBase
         && !Busy;
     public bool CanRun => IsInstalled && !Busy;
     public bool IsHidden => _hidden;
+    public bool RunAfterInstall
+    {
+        get => _runAfterInstall;
+        set
+        {
+            if (SetField(ref _runAfterInstall, value))
+                SaveInstallPreferences();
+        }
+    }
+    public bool PinToTaskbar
+    {
+        get => _pinToTaskbar;
+        set
+        {
+            if (SetField(ref _pinToTaskbar, value))
+                SaveInstallPreferences();
+        }
+    }
     public bool IsSelected
     {
         get => _selected;
@@ -198,6 +221,11 @@ public sealed class AppCardViewModel : ViewModelBase
                 return;
             }
 
+            if (PinToTaskbar)
+                _installer.TryPinToTaskbar(installed, logProgress);
+            if (RunAfterInstall)
+                _installer.TryRun(installed, logProgress);
+
             _installed = installed;
             BusyMessage = "Installed";
             RaiseAllChanged();
@@ -279,6 +307,33 @@ public sealed class AppCardViewModel : ViewModelBase
         SetHidden(true);
         _log($"Hidden {Repo}. Save and refresh keeps it out of future discovery.");
         _refreshParent();
+    }
+
+    private void SaveInstallPreferences()
+    {
+        var cfg = _settingsAccessor();
+        cfg.InstallPreferences ??= new Dictionary<string, AppInstallPreferences>(StringComparer.OrdinalIgnoreCase);
+        if (!RunAfterInstall && !PinToTaskbar)
+        {
+            cfg.InstallPreferences.Remove(Repo);
+        }
+        else
+        {
+            cfg.InstallPreferences[Repo] = new AppInstallPreferences
+            {
+                RunAfterInstall = RunAfterInstall,
+                PinToTaskbar = PinToTaskbar
+            };
+        }
+
+        try
+        {
+            _settings.Save(cfg);
+        }
+        catch (Exception ex)
+        {
+            _log($"! Install preferences could not be saved for {Repo}: {ex.Message}");
+        }
     }
 
     private void OpenDir()

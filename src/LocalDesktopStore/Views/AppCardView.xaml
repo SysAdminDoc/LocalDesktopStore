@@ -7,7 +7,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
-             Width="378" Height="306">
+             Width="378" Height="350">
     <UserControl.Resources>
         <conv:BoolToVisibilityConverter x:Key="BoolToVis" />
         <conv:NullToVisibilityConverter x:Key="NullToVis" />
@@ -19,6 +19,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -215,7 +216,21 @@
                         ToolTip="Open LocalDesktopStore's install and crash logs folder." />
             </Grid>
 
-            <Grid Grid.Row="6">
+            <StackPanel Grid.Row="6"
+                        Orientation="Horizontal"
+                        Margin="0,0,0,8">
+                <CheckBox Content="Run after install"
+                          IsChecked="{Binding RunAfterInstall, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          AutomationProperties.Name="Run this app after installation"
+                          ToolTip="Launch this app automatically after a successful install or update." />
+                <CheckBox Content="Pin after install"
+                          IsChecked="{Binding PinToTaskbar, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          AutomationProperties.Name="Pin this app to the taskbar after installation"
+                          ToolTip="Ask Windows to pin the app's launch target to the taskbar after a successful install or update."
+                          Margin="16,0,0,0" />
+            </StackPanel>
+
+            <Grid Grid.Row="7">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />

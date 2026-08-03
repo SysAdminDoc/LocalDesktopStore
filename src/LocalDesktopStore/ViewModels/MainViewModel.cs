@@ -633,6 +633,12 @@ public sealed class MainViewModel : ViewModelBase
                     app => $"{app.RepoOwner}/{app.RepoName}",
                     app => (app.VersionPin ?? app.InstalledVersion)!,
                     StringComparer.OrdinalIgnoreCase);
+            _settings.InstallPreferences = document.Apps
+                .Where(app => app.InstallPreferences is not null)
+                .ToDictionary(
+                    app => $"{app.RepoOwner}/{app.RepoName}",
+                    app => app.InstallPreferences!,
+                    StringComparer.OrdinalIgnoreCase);
             _settingsService.Save(_settings);
 
             _githubUserInput = _settings.GitHubUser;

@@ -64,6 +64,10 @@ public sealed class SettingsService
             settings.HiddenRepos ??= new List<string>();
             settings.CatalogVersionPins ??= new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             settings.CatalogVersionPins = new Dictionary<string, string>(settings.CatalogVersionPins, StringComparer.OrdinalIgnoreCase);
+            settings.InstallPreferences ??= new Dictionary<string, AppInstallPreferences>(StringComparer.OrdinalIgnoreCase);
+            settings.InstallPreferences = settings.InstallPreferences
+                .Where(pair => pair.Value is not null && !string.IsNullOrWhiteSpace(pair.Key))
+                .ToDictionary(pair => pair.Key.Trim(), pair => pair.Value!, StringComparer.OrdinalIgnoreCase);
             return settings;
         }
         catch { return new AppSettings(); }

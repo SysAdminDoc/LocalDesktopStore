@@ -231,6 +231,30 @@ public sealed class InstallService
         }
     }
 
+    public bool TryPinToTaskbar(InstalledApp app, IProgress<string>? log)
+    {
+        try
+        {
+            var target = !string.IsNullOrEmpty(app.ShortcutPath) && File.Exists(app.ShortcutPath)
+                ? app.ShortcutPath
+                : app.Kind == ArtifactKind.PortableZip
+                    ? app.ExecutablePath
+                    : ResolveLaunchExe(app);
+            if (string.IsNullOrEmpty(target) || !File.Exists(target))
+            {
+                log?.Report($"  ~ Could not pin {app.RepoName}: no launch target was located.");
+                return false;
+            }
+
+            return TaskbarPinService.TryPin(target, log);
+        }
+        catch (Exception ex)
+        {
+            log?.Report($"  ~ Taskbar pinning failed for {app.RepoName}: {ex.Message}");
+            return false;
+        }
+    }
+
     private string? ResolveLaunchExe(InstalledApp app)
     {
         // Strategy 1: DisplayIcon often points to the main executable for installer-driven apps.

@@ -43,6 +43,7 @@ LocalDesktopStore knows about all of those. It picks the right asset off each re
 - **One-click install** — runs `msiexec /i ... /qb`, Inno `/SILENT /NORESTART`, NSIS `/S`, `Add-AppxPackage` for MSIX / MSIXBundle, or extract-and-shortcut for portable ZIPs
 - **App Installer handoff** — `.appinstaller` release URLs open Windows App Installer, which owns package dependencies and update policy; the app never evaluates the URL as a shell command
 - **One-click uninstall** — uses the recorded `UninstallString` / `QuietUninstallString` for installer-driven apps, `Remove-AppxPackage` for MSIX, and removes the extraction folder + Start Menu shortcut for portable apps
+- **Per-card post-install actions** — optionally launch an app after install/update or ask Windows to pin its resolved launch target to the taskbar; preferences persist by `owner/repo`
 - **Run button** — launches the registered `.exe` (from `DisplayIcon` or `InstallLocation`) for installer-driven apps, the largest extracted `.exe` for portable apps
 - **Install-state detection** — pre/post snapshot of `HKLM`, `HKLM\WOW6432Node`, and `HKCU` uninstall keys, then diffs to find the new entry — far more reliable than name-matching
 - **WinGet detection oracle** — refreshes can query WinGet's installed-package catalog through its COM API and cross-check recorded uninstall metadata; if the WinGet server is unavailable, the registry diff remains authoritative
@@ -105,6 +106,8 @@ Use **File → Export catalog** to create a portable `.lds.json` loadout, then *
 
 Every qualifying repo appears as a card. Click **Install** on a card — LocalDesktopStore downloads the asset to `%LOCALAPPDATA%\LocalDesktopStore\downloads\`, verifies the hash, runs the correct installer, and remembers what it installed. `.appinstaller` cards hand the HTTPS release URL to Windows App Installer and ask you to refresh after its flow completes. Click **Run** to launch. Click **Uninstall** to remove.
 
+Use the per-card **Run after install** and **Pin after install** checkboxes when you want an install or update to finish with a launch or taskbar action. The pin option uses the Windows shell `pintotaskbar` verb and reports a clear activity-log message when Windows does not expose a pin-capable launch target; it never injects input or silently changes an unrelated shortcut.
+
 Use **Export** on a card to write a WinGet v1.6 singleton manifest to `Desktop\manifests\<first-letter>\<owner>\<repo>\<version>\<owner>.<repo>.yaml`. The exporter hashes the downloaded release asset locally; review the generated MIT/license and installer metadata before submitting it with `wingetcreate`.
 
 ---
@@ -156,6 +159,7 @@ WPF on .NET 9 — MVVM, no third-party MVVM toolkit. The whole app is ~1,800 lin
   - `InstallService` — routes to MSI / Inno / NSIS / Generic / MSIX / App Installer / Portable handlers
   - `AppxPackageService` — standard-user MSIX install/uninstall, manifest identity lookup, certificate-trust errors, and App Installer URI handoff
   - `WingetDetectionService` — best-effort WinGet installed-catalog query and uninstall-metadata cross-check; unavailable COM falls back cleanly
+  - `TaskbarPinService` — pointer-free shell context-verb pinning for the optional per-card taskbar action
   - `UninstallRegistry` — reads `HKLM`, `HKLM\WOW6432Node`, `HKCU` uninstall keys
   - `HashVerifier` — `<asset>.sha256.txt` sidecar verification
   - `ShortcutService` — creates Start Menu `.lnk` files via `IShellLink` COM
@@ -180,6 +184,7 @@ See [ROADMAP.md](ROADMAP.md). Highlights:
 - **Shipped next** — scheduled background checks and bulk operations.
 - **Shipped next** — catalog import/export and MSIX / App Installer support.
 - **Shipped** — WinGet COM detection oracle with a safe registry fallback when the local WinGet server is unavailable.
+- **Shipped** — per-card post-install launch and taskbar-pin preferences.
 - **v0.4.0** — Cross-platform port via Avalonia (Linux / macOS package equivalents — `.deb`, `.dmg`).
 
 ---
