@@ -15,7 +15,7 @@
 </p>
 
 > **A personal store for the Windows desktop apps you build yourself.**
-> Lists every app across your GitHub repos, downloads the latest MSI / EXE / portable ZIP from the release, and runs the right installer for you. Install. Uninstall. Run. Move on.
+> Lists every app across your GitHub repos, downloads the latest MSI / EXE / portable ZIP / MSIX release, and runs the right installer for you. Install. Uninstall. Run. Move on.
 
 LocalDesktopStore is the desktop sibling of [LocalChromeStore](https://github.com/SysAdminDoc/LocalChromeStore). When you ship more than a couple of WPF apps, PyInstaller bundles, and Win32 utilities under one GitHub account, hand-installing each one on a fresh box gets old fast. WinGet is close, but it requires public submission and hides anything not in the catalog. This is a private store that mirrors the LocalChromeStore UX exactly, just for desktop binaries.
 
@@ -26,6 +26,7 @@ LocalDesktopStore is the desktop sibling of [LocalChromeStore](https://github.co
 A typical sysadmin's GitHub account ships:
 
 - **C# WPF / .NET 9** apps as MSIs or Inno Setup `.exe` installers
+- **Packaged Windows apps** as `.msix`, `.msixbundle`, or `.appinstaller` releases
 - **C++ Win32** apps as NSIS or Inno installers, sometimes a portable `.zip`
 - **PowerShell WPF** apps as portable ZIPs
 - **Python / PyQt6** apps as PyInstaller `.exe` inside a `.zip`
@@ -36,15 +37,16 @@ LocalDesktopStore knows about all of those. It picks the right asset off each re
 
 ## Features (v0.2.1)
 
-- **GitHub-sourced discovery** — every repo whose latest release ships an MSI, NSIS / Inno EXE, or portable ZIP appears as a card
-- **Smart asset classification** — picks the best installer per release, prefers MSI > NSIS / Inno > portable ZIP
+- **GitHub-sourced discovery** — every repo whose latest release ships an MSI, NSIS / Inno EXE, portable ZIP, MSIX, or App Installer manifest appears as a card
+- **Smart asset classification** — picks the best installer per release, preferring MSI > App Installer > MSIX / MSIXBundle > NSIS / Inno > portable ZIP
 - **Inno-vs-NSIS detection** — file-name hints first, then a bounded byte scan for the real signature ("Inno Setup Setup Data" / "Nullsoft Install System") — refuses to silently use the wrong silent-flag set
-- **One-click install** — runs `msiexec /i ... /qb`, Inno `/SILENT /NORESTART`, NSIS `/S`, or extract-and-shortcut for portable ZIPs
-- **One-click uninstall** — uses the recorded `UninstallString` / `QuietUninstallString` for installer-driven apps; for portable apps removes the extraction folder + Start Menu shortcut
+- **One-click install** — runs `msiexec /i ... /qb`, Inno `/SILENT /NORESTART`, NSIS `/S`, `Add-AppxPackage` for MSIX / MSIXBundle, or extract-and-shortcut for portable ZIPs
+- **App Installer handoff** — `.appinstaller` release URLs open Windows App Installer, which owns package dependencies and update policy; the app never evaluates the URL as a shell command
+- **One-click uninstall** — uses the recorded `UninstallString` / `QuietUninstallString` for installer-driven apps, `Remove-AppxPackage` for MSIX, and removes the extraction folder + Start Menu shortcut for portable apps
 - **Run button** — launches the registered `.exe` (from `DisplayIcon` or `InstallLocation`) for installer-driven apps, the largest extracted `.exe` for portable apps
 - **Install-state detection** — pre/post snapshot of `HKLM`, `HKLM\WOW6432Node`, and `HKCU` uninstall keys, then diffs to find the new entry — far more reliable than name-matching
 - **SHA-256 sidecar verification** — refuses to install if `<asset>.sha256.txt` is present and doesn't match (matches the LocalChromeStore release convention)
-- **Authenticode publisher verification** — MSI/EXE installers must be trusted by Windows before they run; the signer thumbprint is pinned per installed repo and publisher changes require explicit approval
+- **Authenticode publisher verification** — MSI/EXE installers must be trusted by Windows before they run; the signer thumbprint is pinned per installed repo and publisher changes require explicit approval. MSIX certificates are validated by Windows Appx deployment, and LDS never imports them
 - **Search and filter** — by name, repo, or description; toggle to show only installed
 - **Topic filter (optional)** — restrict discovery to repos tagged with a topic (default `windows-app`)
 - **Multi-owner settings editor** — add/remove extra GitHub users or organizations without editing JSON
@@ -93,14 +95,14 @@ dotnet build src/LocalDesktopStore/LocalDesktopStore.csproj -c Release
 7. *(Optional)* Switch to the **Catppuccin Latte light theme** or enable the **Windows system accent** under Appearance; both apply immediately and persist when you save settings
 8. *(Optional)* Enable **Check for updates in the background** and choose an interval from 1–24 hours; checks run as your signed-in user, notify through the tray, and never install automatically
 9. Leave **Verify SHA-256 sidecar** on if your releases ship `.sha256.txt` sidecars (LocalChromeStore / LocalDesktopStore convention)
-10. Keep your MSI/EXE release assets Authenticode-signed; LocalDesktopStore refuses unsigned or untrusted installers and warns before a pinned publisher changes
+10. Keep your MSI/EXE release assets Authenticode-signed and your MSIX publisher certificate trusted by Windows; LocalDesktopStore refuses unsigned or untrusted packages and never imports certificates automatically
 11. Click **Save and refresh**
 
 Select one or more card checkboxes to reveal **Install selected**, **Update selected**, and **Uninstall selected**. Bulk work is deliberately sequential so installer output and failures remain attributable to one app at a time.
 
 Use **File → Export catalog** to create a portable `.lds.json` loadout, then **File → Import catalog** on another machine. Imported version pins are stored as catalog metadata; the destination's real install manifest remains authoritative and no app is installed by import.
 
-Every qualifying repo appears as a card. Click **Install** on a card — LocalDesktopStore downloads the asset to `%LOCALAPPDATA%\LocalDesktopStore\downloads\`, verifies the hash, runs the correct installer, and remembers what it installed. Click **Run** to launch. Click **Uninstall** to remove.
+Every qualifying repo appears as a card. Click **Install** on a card — LocalDesktopStore downloads the asset to `%LOCALAPPDATA%\LocalDesktopStore\downloads\`, verifies the hash, runs the correct installer, and remembers what it installed. `.appinstaller` cards hand the HTTPS release URL to Windows App Installer and ask you to refresh after its flow completes. Click **Run** to launch. Click **Uninstall** to remove.
 
 Use **Export** on a card to write a WinGet v1.6 singleton manifest to `Desktop\manifests\<first-letter>\<owner>\<repo>\<version>\<owner>.<repo>.yaml`. The exporter hashes the downloaded release asset locally; review the generated MIT/license and installer metadata before submitting it with `wingetcreate`.
 
@@ -113,14 +115,16 @@ LocalDesktopStore decides what an asset is by both filename and content:
 | Asset | Routing | Silent flags |
 | --- | --- | --- |
 | `*.msi` | MSI | `msiexec /i <file> /qb /norestart` (logged to `%LOCALAPPDATA%\LocalDesktopStore\logs\`) |
+| `*.appinstaller` | Windows App Installer | opens `ms-appinstaller:?source=<url>`; App Installer owns dependencies and update policy |
+| `*.msix` / `*.msixbundle` | MSIX package | `Add-AppxPackage -Path <file>` for the current user; Windows validates the package certificate |
 | `*.exe` containing `Inno Setup Setup Data` (or filename has `innosetup`) | Inno Setup | `<file> /SILENT /NORESTART` |
 | `*.exe` containing `Nullsoft Install System` / `Nullsoft.NSIS` (or filename has `nsis`) | NSIS | `<file> /S` |
 | `*.exe` with `setup` / `installer` in the filename and no signature match | Generic installer | runs interactive — let the user click through |
 | `*.zip` | Portable | extracts to `%LOCALAPPDATA%\LocalDesktopStore\apps\<owner>\<repo>\<version>\`, picks the largest non-uninstaller `.exe`, creates a Start Menu shortcut |
 
-Before an MSI or EXE installer is invoked, Windows `WinVerifyTrust` must accept its Authenticode signature. The certificate thumbprint and subject are recorded in `installed.json`; a later release signed by a different publisher requires an explicit approval prompt. Portable ZIP archives do not have an archive-level Authenticode signature, so they use the existing sidecar hash verification instead.
+Before an MSI or EXE installer is invoked, Windows `WinVerifyTrust` must accept its Authenticode signature. The certificate thumbprint and subject are recorded in `installed.json`; a later release signed by a different publisher requires an explicit approval prompt. MSIX packages are passed to the current user's `Add-AppxPackage` cmdlet without `-AllowUnsigned`; if Windows does not trust the package certificate, the error explains that the publisher must be trusted through an approved Windows process. Portable ZIP archives do not have an archive-level Authenticode signature, so they use the existing sidecar hash verification instead.
 
-If multiple eligible assets ship in the same release, MSI wins, then Inno, then NSIS, then portable ZIP.
+If multiple eligible assets ship in the same release, MSI wins, then App Installer, MSIX / MSIXBundle, Inno, NSIS, then portable ZIP.
 
 ---
 
@@ -148,7 +152,8 @@ WPF on .NET 9 — MVVM, no third-party MVVM toolkit. The whole app is ~1,800 lin
 - `Services/`
   - `GitHubService` — Octokit-backed discovery and asset download
   - `AssetClassifier` — classify by name, refine by PE / file content
-  - `InstallService` — routes to MSI / Inno / NSIS / Generic / Portable handlers
+  - `InstallService` — routes to MSI / Inno / NSIS / Generic / MSIX / App Installer / Portable handlers
+  - `AppxPackageService` — standard-user MSIX install/uninstall, manifest identity lookup, certificate-trust errors, and App Installer URI handoff
   - `UninstallRegistry` — reads `HKLM`, `HKLM\WOW6432Node`, `HKCU` uninstall keys
   - `HashVerifier` — `<asset>.sha256.txt` sidecar verification
   - `ShortcutService` — creates Start Menu `.lnk` files via `IShellLink` COM
@@ -171,7 +176,8 @@ See [ROADMAP.md](ROADMAP.md). Highlights:
 - **v0.2.1** — Multi-owner settings editor and hidden-repo filtering are live.
 - **Shipped** — Authenticode publisher pinning, per-card error/crash-log links, accessibility names/live log, WinGet manifest export, and Catppuccin Latte runtime theming.
 - **Shipped next** — scheduled background checks and bulk operations.
-- **Next** — catalog import/export, MSIX packaging support, and WinGet COM detection.
+- **Shipped next** — catalog import/export and MSIX / App Installer support.
+- **Next** — WinGet COM detection.
 - **v0.4.0** — Cross-platform port via Avalonia (Linux / macOS package equivalents — `.deb`, `.dmg`).
 
 ---

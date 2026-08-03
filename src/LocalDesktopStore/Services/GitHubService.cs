@@ -46,8 +46,8 @@ public sealed class GitHubService
 
     /// <summary>
     /// Discover candidate desktop apps across the configured user(s).
-    /// A repo qualifies when its latest release contains at least one .msi, .exe, or .zip
-    /// asset that AssetClassifier accepts.
+    /// A repo qualifies when its latest release contains at least one supported installer
+    /// asset (.msi, .exe, .zip, .msix, .msixbundle, or .appinstaller).
     /// </summary>
     public async Task<List<AppInfo>> DiscoverAsync(AppSettings cfg, IProgress<string>? log = null, CancellationToken ct = default)
     {

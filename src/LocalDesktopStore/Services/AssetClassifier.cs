@@ -7,8 +7,8 @@ namespace LocalDesktopStore.Services;
 
 /// <summary>
 /// Classifies a release asset by file name and (when on disk) by signature/PE inspection.
-/// MSI is dead-simple: extension. EXE installers split into Inno / NSIS / Generic — name
-/// hints come first, then optional content scan when the file has been downloaded.
+/// MSI and MSIX are dead-simple: extension. EXE installers split into Inno / NSIS / Generic —
+/// name hints come first, then optional content scan when the file has been downloaded.
 /// </summary>
 public static class AssetClassifier
 {
@@ -18,6 +18,10 @@ public static class AssetClassifier
         var n = assetName.ToLowerInvariant();
 
         if (n.EndsWith(".msi")) return ArtifactKind.Msi;
+
+        if (n.EndsWith(".msix") || n.EndsWith(".msixbundle")) return ArtifactKind.Msix;
+
+        if (n.EndsWith(".appinstaller")) return ArtifactKind.AppInstaller;
 
         if (n.EndsWith(".zip"))
         {
@@ -51,7 +55,8 @@ public static class AssetClassifier
     /// </summary>
     public static ArtifactKind RefineFromFile(string path, ArtifactKind hint)
     {
-        if (hint == ArtifactKind.Msi || hint == ArtifactKind.PortableZip) return hint;
+        if (hint is ArtifactKind.Msi or ArtifactKind.PortableZip or ArtifactKind.Msix or ArtifactKind.AppInstaller)
+            return hint;
         try
         {
             // Prefer FileVersionInfo-based hints — fast and accurate when populated.

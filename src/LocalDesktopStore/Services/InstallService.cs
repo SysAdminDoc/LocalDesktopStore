@@ -9,12 +9,14 @@ public sealed class InstallService
 {
     private readonly SettingsService _settings;
     private readonly GitHubService _github;
+    private readonly AppxPackageService _appx;
     private InstalledAppsManifest _manifest;
 
     public InstallService(SettingsService settings, GitHubService github)
     {
         _settings = settings;
         _github = github;
+        _appx = new AppxPackageService();
         _manifest = settings.LoadManifest();
     }
 
@@ -27,7 +29,7 @@ public sealed class InstallService
 
     public void Reload() => _manifest = _settings.LoadManifest();
 
-    public async Task<InstalledApp> InstallAsync(
+    public async Task<InstalledApp?> InstallAsync(
         AppInfo info,
         AppSettings cfg,
         IProgress<string>? log,
@@ -37,6 +39,16 @@ public sealed class InstallService
     {
         if (string.IsNullOrEmpty(info.AssetUrl) || string.IsNullOrEmpty(info.AssetName))
             throw new InvalidOperationException("No release asset to install.");
+
+        if (info.Kind == ArtifactKind.AppInstaller)
+        {
+            // App Installer owns the package graph and update policy described by the
+            // remote .appinstaller file. Do not create an installed.json row until the
+            // next refresh can observe the resulting package through the normal state path.
+            AppxPackageService.LaunchAppInstallerUri(info.AssetUrl!, log);
+            log?.Report("App Installer opened; refresh after its installation flow completes.");
+            return null;
+        }
 
         var safeVersion = info.DisplayVersion.Replace('/', '_').Replace('\\', '_');
         var stagingDir = Path.Combine(_settings.DownloadsDir, $"{info.RepoName}-{safeVersion}");
@@ -75,6 +87,10 @@ public sealed class InstallService
         {
             log?.Report("  ~ portable ZIP has no archive-level Authenticode signature; publisher pin skipped.");
         }
+        else if (info.Kind == ArtifactKind.Msix)
+        {
+            log?.Report("  ~ MSIX signature and certificate trust will be validated by Add-AppxPackage; no certificate will be imported.");
+        }
         else
         {
             log?.Report("Verifying Authenticode signature and trusted publisher...");
@@ -107,7 +123,7 @@ public sealed class InstallService
             }
         }
 
-        var refinedKind = info.Kind == ArtifactKind.PortableZip || info.Kind == ArtifactKind.Msi
+        var refinedKind = info.Kind is ArtifactKind.PortableZip or ArtifactKind.Msi or ArtifactKind.Msix
             ? info.Kind
             : AssetClassifier.RefineFromFile(stagedFile, info.Kind);
         if (refinedKind != info.Kind)
@@ -120,6 +136,7 @@ public sealed class InstallService
             ArtifactKind.Nsis => await RunInstallerAsync(info, stagedFile, refinedKind, "/S", log, ct),
             ArtifactKind.GenericExe => await RunInstallerAsync(info, stagedFile, refinedKind, null, log, ct),
             ArtifactKind.PortableZip => await InstallPortableAsync(info, cfg, stagedFile, log, ct),
+            ArtifactKind.Msix => await InstallMsixAsync(info, stagedFile, log, ct),
             _ => throw new InvalidOperationException($"Unsupported artifact kind: {refinedKind}")
         };
         record.PublisherCertThumbprint = publisher?.Thumbprint;
@@ -150,6 +167,9 @@ public sealed class InstallService
                 break;
             case ArtifactKind.PortableZip:
                 UninstallPortable(app, log);
+                break;
+            case ArtifactKind.Msix:
+                await _appx.UninstallAsync(app, log, ct);
                 break;
         }
 
@@ -297,6 +317,28 @@ public sealed class InstallService
         await proc.WaitForExitAsync(ct);
         if (proc.ExitCode != 0 && proc.ExitCode != 3010)
             throw new InvalidOperationException($"msiexec /x returned {proc.ExitCode}. See {logPath}");
+    }
+
+    // ----- MSIX -----
+
+    private async Task<InstalledApp> InstallMsixAsync(
+        AppInfo info,
+        string packagePath,
+        IProgress<string>? log,
+        CancellationToken ct)
+    {
+        var result = await _appx.InstallPackageAsync(packagePath, log, ct);
+        return new InstalledApp
+        {
+            RepoOwner = info.RepoOwner,
+            RepoName = info.RepoName,
+            Version = info.DisplayVersion,
+            Kind = ArtifactKind.Msix,
+            InstalledAt = DateTimeOffset.UtcNow,
+            AppxPackageName = result.IdentityName,
+            AppxPackageFullName = result.PackageFullName,
+            InstallLocation = result.InstallLocation
+        };
     }
 
     // ----- EXE installers -----

@@ -13,6 +13,7 @@ All notable changes to LocalDesktopStore are documented here. Format follows [Ke
 - **Scheduled background update checks** (X2) — optional 1–24 hour polling uses a current-user, least-privilege Task Scheduler entry, a headless `--scheduled-check` path, and native tray notifications; it never installs updates automatically.
 - **Bulk selection operations** (X3) — card checkboxes reveal sequential install, update, and uninstall commands with one aggregate status banner and per-card error attribution.
 - **Catalog file transfer** (X4) — File → Export/Import round-trips owners, hidden app overrides, preferences, and version pins through a bounded, validated `.lds.json` document without exporting the GitHub PAT.
+- **MSIX and App Installer support** (X5) — `.msix` / `.msixbundle` assets install and uninstall through current-user `Add-AppxPackage` / `Remove-AppxPackage`, while `.appinstaller` release URLs open the Windows App Installer protocol. Certificate trust failures are explicit and no certificate is imported automatically.
 
 ### Changed
 - Refreshes now use a lockfile aligned with the framework-dependent project target, so locked restores no longer carry a stale `win-x64` runtime graph.

@@ -7,7 +7,9 @@ public enum ArtifactKind
     Nsis,
     Inno,
     GenericExe,
-    PortableZip
+    PortableZip,
+    Msix,
+    AppInstaller
 }
 
 public static class ArtifactKindExtensions
@@ -19,12 +21,16 @@ public static class ArtifactKindExtensions
         ArtifactKind.Inno => "Inno Setup installer",
         ArtifactKind.GenericExe => "Setup .exe",
         ArtifactKind.PortableZip => "Portable .zip",
+        ArtifactKind.Msix => "MSIX / MSIXBundle",
+        ArtifactKind.AppInstaller => "App Installer manifest",
         _ => "Unknown"
     };
 
     public static int Priority(this ArtifactKind kind) => kind switch
     {
         ArtifactKind.Msi => 100,
+        ArtifactKind.AppInstaller => 90,
+        ArtifactKind.Msix => 85,
         ArtifactKind.Inno => 80,
         ArtifactKind.Nsis => 75,
         ArtifactKind.GenericExe => 60,

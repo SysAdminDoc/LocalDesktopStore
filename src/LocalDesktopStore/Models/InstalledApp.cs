@@ -29,6 +29,12 @@ public sealed class InstalledApp
     /// <summary>MSI ProductCode (registry subkey for MSI installs). Used for `msiexec /x`.</summary>
     public string? MsiProductCode { get; set; }
 
+    /// <summary>MSIX Identity Name from AppxManifest.xml, used to find the current-user package.</summary>
+    public string? AppxPackageName { get; set; }
+
+    /// <summary>MSIX PackageFullName captured after installation when available.</summary>
+    public string? AppxPackageFullName { get; set; }
+
     /// <summary>Normalized SHA-1 thumbprint of the trusted Authenticode signer at install time.</summary>
     public string? PublisherCertThumbprint { get; set; }
 

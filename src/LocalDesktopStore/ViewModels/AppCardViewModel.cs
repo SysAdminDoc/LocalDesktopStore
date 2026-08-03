@@ -70,7 +70,7 @@ public sealed class AppCardViewModel : ViewModelBase
     public string KindLabel => Info.Kind.DisplayName();
     public string AssetSummary => Info.AssetUrl != null
         ? $"{Info.AssetName} • {FormatSize(Info.AssetSizeBytes)}"
-        : "Add an MSI / EXE / ZIP release asset to enable install.";
+        : "Add an MSI / EXE / ZIP / MSIX / App Installer release asset to enable install.";
     public string ReleaseSummary => Info.PublishedAt.HasValue
         ? $"Released {Info.PublishedAt.Value.LocalDateTime:MMM d, yyyy}"
         : "Release date unavailable";
@@ -80,7 +80,9 @@ public sealed class AppCardViewModel : ViewModelBase
     public bool IsUpdateAvailable => IsInstalled
         && VersionCompare.IsRemoteNewer(_installed!.Version, Info.DisplayVersion);
     public bool CanInstall => HasAsset && !Busy;
-    public bool CanExport => HasAsset && !Busy;
+    public bool CanExport => HasAsset
+        && Info.Kind is not (ArtifactKind.Msix or ArtifactKind.AppInstaller)
+        && !Busy;
     public bool CanRun => IsInstalled && !Busy;
     public bool IsHidden => _hidden;
     public bool IsSelected
@@ -180,13 +182,23 @@ public sealed class AppCardViewModel : ViewModelBase
                 }
             });
             var logProgress = new Progress<string>(_log);
-            _installed = await _installer.InstallAsync(
+            var installed = await _installer.InstallAsync(
                 Info,
                 _settingsAccessor(),
                 logProgress,
                 bytesProgress,
                 ct,
                 ConfirmPublisherChangeAsync);
+            if (installed is null)
+            {
+                BusyMessage = "App Installer opened";
+                _log($"App Installer opened for {Repo}; refresh after its installation flow completes.");
+                RaiseAllChanged();
+                _refreshParent();
+                return;
+            }
+
+            _installed = installed;
             BusyMessage = "Installed";
             RaiseAllChanged();
             _refreshParent();
