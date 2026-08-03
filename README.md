@@ -49,6 +49,7 @@ LocalDesktopStore knows about all of those. It picks the right asset off each re
 - **Install-state detection** — pre/post snapshot of `HKLM`, `HKLM\WOW6432Node`, and `HKCU` uninstall keys, then diffs to find the new entry — far more reliable than name-matching
 - **WinGet detection oracle** — refreshes can query WinGet's installed-package catalog through its COM API and cross-check recorded uninstall metadata; if the WinGet server is unavailable, the registry diff remains authoritative
 - **SHA-256 sidecar verification** — refuses to install if `<asset>.sha256.txt` is present and doesn't match (matches the LocalChromeStore release convention)
+- **Verified download cache** — sidecar-verified assets are cached under `downloads\cache\<owner>\<repo>\<version>\<sha256>\`; matching updates restore locally after re-checking the blob hash
 - **Authenticode publisher verification** — MSI/EXE installers must be trusted by Windows before they run; the signer thumbprint is pinned per installed repo and publisher changes require explicit approval. MSIX certificates are validated by Windows Appx deployment, and LDS never imports them
 - **Search and filter** — by name, repo, or description; toggle to show only installed
 - **Topic filter (optional)** — restrict discovery to repos tagged with a topic (default `windows-app`)
@@ -105,7 +106,7 @@ Select one or more card checkboxes to reveal **Install selected**, **Update sele
 
 Use **File → Export catalog** to create a portable `.lds.json` loadout, then **File → Import catalog** on another machine. Imported version pins are stored as catalog metadata; the destination's real install manifest remains authoritative and no app is installed by import.
 
-Every qualifying repo appears as a card. Click **Install** on a card — LocalDesktopStore downloads the asset to `%LOCALAPPDATA%\LocalDesktopStore\downloads\`, verifies the hash, runs the correct installer, and remembers what it installed. `.appinstaller` cards hand the HTTPS release URL to Windows App Installer and ask you to refresh after its flow completes. Click **Run** to launch. Click **Uninstall** to remove.
+Every qualifying repo appears as a card. Click **Install** on a card — LocalDesktopStore restores a verified sidecar-matching asset from `%LOCALAPPDATA%\LocalDesktopStore\downloads\cache\` when available, otherwise downloads it, verifies the hash, runs the correct installer, and remembers what it installed. `.appinstaller` cards hand the HTTPS release URL to Windows App Installer and ask you to refresh after its flow completes. Click **Run** to launch. Click **Uninstall** to remove.
 
 Use the per-card **Run after install** and **Pin after install** checkboxes when you want an install or update to finish with a launch or taskbar action. The pin option uses the Windows shell `pintotaskbar` verb and reports a clear activity-log message when Windows does not expose a pin-capable launch target; it never injects input or silently changes an unrelated shortcut.
 
@@ -143,6 +144,7 @@ If multiple eligible assets ship in the same release, MSI wins, then App Install
 | `%APPDATA%\LocalDesktopStore\installed.json` | Installed-app manifest (registry key, command, location) |
 | `%LOCALAPPDATA%\LocalDesktopStore\apps\<owner>\<repo>\<version>\` | Extracted portable apps |
 | `%LOCALAPPDATA%\LocalDesktopStore\downloads\` | Cached release assets (cleaned on demand) |
+| `%LOCALAPPDATA%\LocalDesktopStore\downloads\cache\<owner>\<repo>\<version>\<sha256>\` | Verified whole-asset download cache |
 | `%LOCALAPPDATA%\LocalDesktopStore\cache\icons\` | Cached repo logos |
 | `%LOCALAPPDATA%\LocalDesktopStore\logs\` | MSI install logs + crash logs |
 | `%APPDATA%\Microsoft\Windows\Start Menu\Programs\LocalDesktopStore\` | Start Menu shortcuts for portable apps |
@@ -164,6 +166,7 @@ WPF on .NET 9 — MVVM, no third-party MVVM toolkit. The whole app is ~1,800 lin
   - `WingetDetectionService` — best-effort WinGet installed-catalog query and uninstall-metadata cross-check; unavailable COM falls back cleanly
   - `TaskbarPinService` — pointer-free shell context-verb pinning for the optional per-card taskbar action
   - `InstallerArgumentParser` — Windows-compatible quoting validation and tokenization for custom installer switches
+  - `DownloadCacheService` — sidecar-keyed verified whole-asset cache with corrupt-entry fallback
   - `UninstallRegistry` — reads `HKLM`, `HKLM\WOW6432Node`, `HKCU` uninstall keys
   - `HashVerifier` — `<asset>.sha256.txt` sidecar verification
   - `ShortcutService` — creates Start Menu `.lnk` files via `IShellLink` COM
@@ -189,6 +192,7 @@ See [ROADMAP.md](ROADMAP.md). Highlights:
 - **Shipped next** — catalog import/export and MSIX / App Installer support.
 - **Shipped** — WinGet COM detection oracle with a safe registry fallback when the local WinGet server is unavailable.
 - **Shipped** — per-card post-install launch and taskbar-pin preferences.
+- **Shipped** — per-card custom installer arguments and sidecar-verified download caching.
 - **v0.4.0** — Cross-platform port via Avalonia (Linux / macOS package equivalents — `.deb`, `.dmg`).
 
 ---

@@ -11,6 +11,7 @@ public sealed class InstallService
     private readonly GitHubService _github;
     private readonly AppxPackageService _appx;
     private readonly WingetDetectionService _winget;
+    private readonly DownloadCacheService _downloadCache;
     private InstalledAppsManifest _manifest;
     private WingetDetectionSnapshot _wingetSnapshot =
         WingetDetectionSnapshot.Unavailable("WinGet oracle has not been queried yet.");
@@ -21,6 +22,7 @@ public sealed class InstallService
         _github = github;
         _appx = new AppxPackageService();
         _winget = new WingetDetectionService();
+        _downloadCache = new DownloadCacheService(settings.DownloadsDir);
         _manifest = settings.LoadManifest();
     }
 
@@ -78,9 +80,8 @@ public sealed class InstallService
         Directory.CreateDirectory(stagingDir);
         var stagedFile = Path.Combine(stagingDir, info.AssetName!);
 
-        log?.Report($"Downloading {info.AssetName} ({Format(info.AssetSizeBytes)}) ...");
-        await _github.DownloadAssetToFileAsync(info.AssetUrl!, stagedFile, bytes, ct);
-
+        string? sidecarText = null;
+        string? expectedHash = null;
         if (cfg.VerifyHashSidecar)
         {
             if (string.IsNullOrEmpty(info.Sha256Url))
@@ -89,19 +90,35 @@ public sealed class InstallService
             }
             else
             {
-                log?.Report("Verifying SHA-256 against sidecar...");
-                var sidecarText = await _github.TryDownloadTextAsync(info.Sha256Url!, ct);
+                log?.Report("Reading SHA-256 sidecar...");
+                sidecarText = await _github.TryDownloadTextAsync(info.Sha256Url!, ct);
                 if (sidecarText is null)
                 {
                     throw new InvalidOperationException("Hash sidecar download failed — refusing to install.");
                 }
+                expectedHash = HashVerifier.ParseSidecar(sidecarText)
+                    ?? throw new InvalidOperationException("Sidecar present but no SHA-256 hash could be parsed — refusing to install.");
+            }
+        }
+
+        var restoredFromCache = expectedHash is not null
+            && await _downloadCache.TryRestoreAsync(info, expectedHash, stagedFile, bytes, log, ct);
+        if (!restoredFromCache)
+        {
+            log?.Report($"Downloading {info.AssetName} ({Format(info.AssetSizeBytes)}) ...");
+            await _github.DownloadAssetToFileAsync(info.AssetUrl!, stagedFile, bytes, ct);
+
+            if (sidecarText is not null)
+            {
+                log?.Report("Verifying SHA-256 against sidecar...");
                 var result = await HashVerifier.VerifyAsync(stagedFile, sidecarText, ct);
                 if (!result.Verified)
                 {
                     log?.Report($"  ! {result.Detail} (expected {result.ExpectedHash}, actual {result.ActualHash})");
                     throw new InvalidOperationException($"Hash verification failed: {result.Detail}");
                 }
-                log?.Report($"  ✓ SHA-256 OK");
+                log?.Report("  ✓ SHA-256 OK");
+                await _downloadCache.StoreVerifiedAsync(info, expectedHash!, stagedFile, log, ct);
             }
         }
 
