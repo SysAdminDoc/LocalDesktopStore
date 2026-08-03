@@ -10,4 +10,6 @@ public sealed class AppSettings
     public List<string> HiddenRepos { get; set; } = new();
     public bool VerifyHashSidecar { get; set; } = true;
     public string? InstallRootOverride { get; set; }
+    public bool UseLightTheme { get; set; }
+    public bool UseSystemAccent { get; set; }
 }

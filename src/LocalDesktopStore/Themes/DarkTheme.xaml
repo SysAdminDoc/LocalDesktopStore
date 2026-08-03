@@ -55,8 +55,8 @@
                       Opacity="0.18" />
 
     <Style TargetType="Window">
-        <Setter Property="Background" Value="{StaticResource BaseBrush}" />
-        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        <Setter Property="Background" Value="{DynamicResource BaseBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
         <Setter Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI" />
         <Setter Property="FontSize" Value="13" />
         <Setter Property="UseLayoutRounding" Value="True" />
@@ -64,34 +64,34 @@
     </Style>
 
     <Style TargetType="TextBlock">
-        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
         <Setter Property="LineHeight" Value="19" />
     </Style>
 
     <Style x:Key="HeadingText" TargetType="TextBlock">
-        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
         <Setter Property="FontSize" Value="22" />
         <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
 
     <Style x:Key="SectionTitle" TargetType="TextBlock">
-        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
         <Setter Property="FontSize" Value="15" />
         <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
 
     <Style x:Key="SubtleText" TargetType="TextBlock">
-        <Setter Property="Foreground" Value="{StaticResource SubtextBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource SubtextBrush}" />
         <Setter Property="FontSize" Value="12" />
     </Style>
 
     <Style x:Key="MuteText" TargetType="TextBlock">
-        <Setter Property="Foreground" Value="{StaticResource MuteBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource MuteBrush}" />
         <Setter Property="FontSize" Value="11" />
     </Style>
 
     <Style x:Key="InputLabel" TargetType="TextBlock">
-        <Setter Property="Foreground" Value="{StaticResource SubtextBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource SubtextBrush}" />
         <Setter Property="FontSize" Value="11" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Margin" Value="0,0,0,5" />
@@ -104,9 +104,9 @@
     </Style>
 
     <Style TargetType="Button">
-        <Setter Property="Background" Value="{StaticResource Surface0Brush}" />
-        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource Surface1Brush}" />
+        <Setter Property="Background" Value="{DynamicResource Surface0Brush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Surface1Brush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Padding" Value="14,7" />
         <Setter Property="MinHeight" Value="34" />
@@ -129,14 +129,14 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource Surface1Brush}" />
-                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Surface2Brush}" />
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Surface1Brush}" />
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Surface2Brush}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource Surface2Brush}" />
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Surface2Brush}" />
                         </Trigger>
                         <Trigger Property="IsKeyboardFocused" Value="True">
-                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource FocusRingBrush}" />
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource FocusRingBrush}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="Bd" Property="Opacity" Value="0.45" />
@@ -149,41 +149,41 @@
     </Style>
 
     <Style x:Key="AccentButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-        <Setter Property="Background" Value="{StaticResource MauveBrush}" />
-        <Setter Property="Foreground" Value="{StaticResource CrustBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource MauveBrush}" />
+        <Setter Property="Background" Value="{DynamicResource MauveBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource CrustBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource MauveBrush}" />
         <Setter Property="Padding" Value="16,8" />
     </Style>
 
     <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-        <Setter Property="Background" Value="{StaticResource RedSoftBrush}" />
-        <Setter Property="Foreground" Value="{StaticResource RedBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource RedBrush}" />
+        <Setter Property="Background" Value="{DynamicResource RedSoftBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource RedBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource RedBrush}" />
     </Style>
 
     <Style x:Key="SuccessButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-        <Setter Property="Background" Value="{StaticResource GreenSoftBrush}" />
-        <Setter Property="Foreground" Value="{StaticResource GreenBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource GreenBrush}" />
+        <Setter Property="Background" Value="{DynamicResource GreenSoftBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource GreenBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource GreenBrush}" />
     </Style>
 
     <Style x:Key="LinkButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderBrush" Value="Transparent" />
-        <Setter Property="Foreground" Value="{StaticResource SapphireBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource SapphireBrush}" />
         <Setter Property="Padding" Value="8,4" />
         <Setter Property="MinHeight" Value="28" />
         <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
 
     <Style TargetType="TextBox">
-        <Setter Property="Background" Value="{StaticResource CrustBrush}" />
-        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource Surface1Brush}" />
+        <Setter Property="Background" Value="{DynamicResource CrustBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Surface1Brush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Padding" Value="10,7" />
-        <Setter Property="CaretBrush" Value="{StaticResource MauveBrush}" />
-        <Setter Property="SelectionBrush" Value="{StaticResource MauveBrush}" />
+        <Setter Property="CaretBrush" Value="{DynamicResource MauveBrush}" />
+        <Setter Property="SelectionBrush" Value="{DynamicResource MauveBrush}" />
         <Setter Property="MinHeight" Value="34" />
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
         <Setter Property="Template">
@@ -198,10 +198,10 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Surface2Brush}" />
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Surface2Brush}" />
                         </Trigger>
                         <Trigger Property="IsKeyboardFocused" Value="True">
-                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource FocusRingBrush}" />
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource FocusRingBrush}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="Bd" Property="Opacity" Value="0.5" />
@@ -213,13 +213,13 @@
     </Style>
 
     <Style TargetType="PasswordBox">
-        <Setter Property="Background" Value="{StaticResource CrustBrush}" />
-        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource Surface1Brush}" />
+        <Setter Property="Background" Value="{DynamicResource CrustBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Surface1Brush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Padding" Value="10,7" />
-        <Setter Property="CaretBrush" Value="{StaticResource MauveBrush}" />
-        <Setter Property="SelectionBrush" Value="{StaticResource MauveBrush}" />
+        <Setter Property="CaretBrush" Value="{DynamicResource MauveBrush}" />
+        <Setter Property="SelectionBrush" Value="{DynamicResource MauveBrush}" />
         <Setter Property="MinHeight" Value="34" />
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
         <Setter Property="Template">
@@ -234,10 +234,10 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Surface2Brush}" />
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Surface2Brush}" />
                         </Trigger>
                         <Trigger Property="IsKeyboardFocused" Value="True">
-                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource FocusRingBrush}" />
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource FocusRingBrush}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="Bd" Property="Opacity" Value="0.5" />
@@ -249,7 +249,7 @@
     </Style>
 
     <Style TargetType="CheckBox">
-        <Setter Property="Foreground" Value="{StaticResource SubtextBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource SubtextBrush}" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
         <Setter Property="Template">
@@ -264,13 +264,13 @@
                                 Width="18"
                                 Height="18"
                                 CornerRadius="5"
-                                Background="{StaticResource CrustBrush}"
-                                BorderBrush="{StaticResource Surface2Brush}"
+                                Background="{DynamicResource CrustBrush}"
+                                BorderBrush="{DynamicResource Surface2Brush}"
                                 BorderThickness="1"
                                 VerticalAlignment="Center">
                             <Path x:Name="CheckMark"
                                   Data="M 4 9 L 8 13 L 15 5"
-                                  Stroke="{StaticResource CrustBrush}"
+                                  Stroke="{DynamicResource CrustBrush}"
                                   StrokeThickness="2"
                                   StrokeStartLineCap="Round"
                                   StrokeEndLineCap="Round"
@@ -286,15 +286,15 @@
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="True">
-                            <Setter TargetName="Box" Property="Background" Value="{StaticResource MauveBrush}" />
-                            <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource MauveBrush}" />
+                            <Setter TargetName="Box" Property="Background" Value="{DynamicResource MauveBrush}" />
+                            <Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource MauveBrush}" />
                             <Setter TargetName="CheckMark" Property="Visibility" Value="Visible" />
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource FocusRingBrush}" />
+                            <Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource FocusRingBrush}" />
                         </Trigger>
                         <Trigger Property="IsKeyboardFocused" Value="True">
-                            <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource FocusRingBrush}" />
+                            <Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource FocusRingBrush}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="Box" Property="Opacity" Value="0.45" />
@@ -308,15 +308,15 @@
 
     <Style TargetType="ProgressBar">
         <Setter Property="Height" Value="3" />
-        <Setter Property="Background" Value="{StaticResource Surface0Brush}" />
-        <Setter Property="Foreground" Value="{StaticResource MauveBrush}" />
+        <Setter Property="Background" Value="{DynamicResource Surface0Brush}" />
+        <Setter Property="Foreground" Value="{DynamicResource MauveBrush}" />
         <Setter Property="BorderThickness" Value="0" />
     </Style>
 
     <Style TargetType="ToolTip">
-        <Setter Property="Background" Value="{StaticResource CrustBrush}" />
-        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource Surface2Brush}" />
+        <Setter Property="Background" Value="{DynamicResource CrustBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Surface2Brush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Padding" Value="8,6" />
     </Style>
@@ -333,8 +333,8 @@
     </Style>
 
     <Style x:Key="CardBorder" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource MantleBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource Surface0Brush}" />
+        <Setter Property="Background" Value="{DynamicResource MantleBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Surface0Brush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="8" />
         <Setter Property="Padding" Value="16" />
@@ -342,8 +342,8 @@
     </Style>
 
     <Style x:Key="PanelBorder" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource MantleBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource Surface0Brush}" />
+        <Setter Property="Background" Value="{DynamicResource MantleBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Surface0Brush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="8" />
     </Style>

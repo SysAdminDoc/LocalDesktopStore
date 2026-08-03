@@ -1,0 +1,54 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Catppuccin Latte semantic palette. The shared control templates live in DarkTheme;
+         their DynamicResource brush lookups make this dictionary safe to swap at runtime. -->
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="DarkTheme.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+    <Color x:Key="BaseColor">#eff1f5</Color>
+    <Color x:Key="MantleColor">#e6e9ef</Color>
+    <Color x:Key="CrustColor">#dce0e8</Color>
+    <Color x:Key="Surface0Color">#ccd0da</Color>
+    <Color x:Key="Surface1Color">#bcc0cc</Color>
+    <Color x:Key="Surface2Color">#acb0be</Color>
+    <Color x:Key="OverlayColor">#9ca0b0</Color>
+    <Color x:Key="TextColor">#4c4f69</Color>
+    <Color x:Key="SubtextColor">#5c5f77</Color>
+    <Color x:Key="MuteColor">#7c7f93</Color>
+    <Color x:Key="MauveColor">#8839ef</Color>
+    <Color x:Key="MauveSoftColor">#e8defc</Color>
+    <Color x:Key="SapphireColor">#209fb5</Color>
+    <Color x:Key="SapphireSoftColor">#d9eef1</Color>
+    <Color x:Key="GreenColor">#40a02b</Color>
+    <Color x:Key="GreenSoftColor">#d9f0d3</Color>
+    <Color x:Key="RedColor">#d20f39</Color>
+    <Color x:Key="RedSoftColor">#f8d6dc</Color>
+    <Color x:Key="YellowColor">#df8e1d</Color>
+    <Color x:Key="YellowSoftColor">#f7e8c8</Color>
+    <Color x:Key="PeachColor">#fe640b</Color>
+
+    <SolidColorBrush x:Key="BaseBrush" Color="#eff1f5" />
+    <SolidColorBrush x:Key="MantleBrush" Color="#e6e9ef" />
+    <SolidColorBrush x:Key="CrustBrush" Color="#dce0e8" />
+    <SolidColorBrush x:Key="Surface0Brush" Color="#ccd0da" />
+    <SolidColorBrush x:Key="Surface1Brush" Color="#bcc0cc" />
+    <SolidColorBrush x:Key="Surface2Brush" Color="#acb0be" />
+    <SolidColorBrush x:Key="OverlayBrush" Color="#9ca0b0" />
+    <SolidColorBrush x:Key="TextBrush" Color="#4c4f69" />
+    <SolidColorBrush x:Key="SubtextBrush" Color="#5c5f77" />
+    <SolidColorBrush x:Key="MuteBrush" Color="#7c7f93" />
+    <SolidColorBrush x:Key="MauveBrush" Color="#8839ef" />
+    <SolidColorBrush x:Key="MauveSoftBrush" Color="#e8defc" />
+    <SolidColorBrush x:Key="SapphireBrush" Color="#209fb5" />
+    <SolidColorBrush x:Key="SapphireSoftBrush" Color="#d9eef1" />
+    <SolidColorBrush x:Key="GreenBrush" Color="#40a02b" />
+    <SolidColorBrush x:Key="GreenSoftBrush" Color="#d9f0d3" />
+    <SolidColorBrush x:Key="RedBrush" Color="#d20f39" />
+    <SolidColorBrush x:Key="RedSoftBrush" Color="#f8d6dc" />
+    <SolidColorBrush x:Key="YellowBrush" Color="#df8e1d" />
+    <SolidColorBrush x:Key="YellowSoftBrush" Color="#f7e8c8" />
+    <SolidColorBrush x:Key="PeachBrush" Color="#fe640b" />
+    <SolidColorBrush x:Key="FocusRingBrush" Color="#8839ef" />
+</ResourceDictionary>

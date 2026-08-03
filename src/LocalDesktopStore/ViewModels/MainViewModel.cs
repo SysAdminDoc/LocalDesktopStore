@@ -49,6 +49,7 @@ public sealed class MainViewModel : ViewModelBase
         _github = new GitHubService();
         _installer = new InstallService(_settingsService, _github);
         _settings = _settingsService.Load();
+        ThemeService.Apply(_settings);
         _logSink = new DispatcherLogSink(LogLines);
 
         _githubUserInput = _settings.GitHubUser;
@@ -188,6 +189,34 @@ public sealed class MainViewModel : ViewModelBase
             if (_settings.VerifyHashSidecar != value)
             {
                 _settings.VerifyHashSidecar = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public bool UseLightTheme
+    {
+        get => _settings.UseLightTheme;
+        set
+        {
+            if (_settings.UseLightTheme != value)
+            {
+                _settings.UseLightTheme = value;
+                ThemeService.Apply(_settings);
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public bool UseSystemAccent
+    {
+        get => _settings.UseSystemAccent;
+        set
+        {
+            if (_settings.UseSystemAccent != value)
+            {
+                _settings.UseSystemAccent = value;
+                ThemeService.Apply(_settings);
                 OnPropertyChanged();
             }
         }

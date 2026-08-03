@@ -15,7 +15,7 @@
         <conv:EmptyStringToVisibilityConverter x:Key="EmptyStringToVis" />
     </Window.Resources>
 
-    <Grid Background="{StaticResource BaseBrush}">
+    <Grid Background="{DynamicResource BaseBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -27,8 +27,8 @@
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0"
-                Background="{StaticResource CrustBrush}"
-                BorderBrush="{StaticResource Surface0Brush}"
+                Background="{DynamicResource CrustBrush}"
+                BorderBrush="{DynamicResource Surface0Brush}"
                 BorderThickness="0,0,0,1"
                 Padding="22,16">
             <Grid>
@@ -41,15 +41,15 @@
                         Width="44"
                         Height="44"
                         CornerRadius="8"
-                        Background="{StaticResource MauveSoftBrush}"
-                        BorderBrush="{StaticResource MauveBrush}"
+                        Background="{DynamicResource MauveSoftBrush}"
+                        BorderBrush="{DynamicResource MauveBrush}"
                         BorderThickness="1"
                         Margin="0,0,14,0">
                     <TextBlock Text="LDS"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Center"
                                FontWeight="SemiBold"
-                               Foreground="{StaticResource MauveBrush}" />
+                               Foreground="{DynamicResource MauveBrush}" />
                 </Border>
 
                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
@@ -59,8 +59,8 @@
                     <TextBlock Style="{StaticResource MuteText}" Margin="0,3,0,0">
                         <Run Text="{Binding AvailableCount, Mode=OneWay}" />
                         <Run Text=" available" />
-                        <Run Text=" / " Foreground="{StaticResource MuteBrush}" />
-                        <Run Text="{Binding InstalledCount, Mode=OneWay}" Foreground="{StaticResource GreenBrush}" />
+                        <Run Text=" / " Foreground="{DynamicResource MuteBrush}" />
+                        <Run Text="{Binding InstalledCount, Mode=OneWay}" Foreground="{DynamicResource GreenBrush}" />
                         <Run Text=" installed" />
                     </TextBlock>
                 </StackPanel>
@@ -69,9 +69,9 @@
         </Border>
 
         <Border Grid.Row="1"
-                Background="{StaticResource MantleBrush}"
+                Background="{DynamicResource MantleBrush}"
                 Padding="20,12"
-                BorderBrush="{StaticResource Surface0Brush}"
+                BorderBrush="{DynamicResource Surface0Brush}"
                 BorderThickness="0,0,0,1">
             <Grid>
                 <Grid.RowDefinitions>
@@ -278,6 +278,23 @@
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" Margin="0,0,16,0">
+                        <TextBlock Text="Appearance" Style="{StaticResource InputLabel}" />
+                        <CheckBox Content="Use Catppuccin Latte light theme"
+                                  IsChecked="{Binding UseLightTheme}"
+                                  AutomationProperties.Name="Use Catppuccin Latte light theme" />
+                        <TextBlock Style="{StaticResource MuteText}"
+                                   TextWrapping="Wrap"
+                                   Margin="0,7,0,0"
+                                   Text="Switches the palette immediately; save settings to keep it for the next launch." />
+                        <CheckBox Content="Use Windows system accent"
+                                  IsChecked="{Binding UseSystemAccent}"
+                                  AutomationProperties.Name="Use Windows system accent color"
+                                  Margin="0,12,0,0" />
+                        <TextBlock Style="{StaticResource MuteText}"
+                                   TextWrapping="Wrap"
+                                   Margin="0,7,0,0"
+                                   Text="Uses the Windows accent for the primary action and focus ring." />
+
                         <CheckBox Content="Filter by GitHub topic"
                                   IsChecked="{Binding UseTopicFilter}"
                                   AutomationProperties.Name="Filter discovery by GitHub topic" />
@@ -429,8 +446,8 @@
         </Grid>
 
         <Border Grid.Row="4"
-                Background="{StaticResource MantleBrush}"
-                BorderBrush="{StaticResource Surface0Brush}"
+                Background="{DynamicResource MantleBrush}"
+                BorderBrush="{DynamicResource Surface0Brush}"
                 BorderThickness="0,1,0,0">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -452,7 +469,7 @@
             </Grid>
         </Border>
 
-        <Border Grid.Row="5" Background="{StaticResource CrustBrush}" Padding="16,10">
+        <Border Grid.Row="5" Background="{DynamicResource CrustBrush}" Padding="16,10">
             <ListBox ItemsSource="{Binding LogLines}"
                      AutomationProperties.Name="Activity log"
                      AutomationProperties.LiveSetting="Polite"
@@ -460,7 +477,7 @@
                      ScrollViewer.VerticalScrollBarVisibility="Auto"
                      FontFamily="Cascadia Mono, Consolas"
                      FontSize="11"
-                     Foreground="{StaticResource SubtextBrush}"
+                     Foreground="{DynamicResource SubtextBrush}"
                      x:Name="LogList">
                 <ListBox.ItemContainerStyle>
                     <Style TargetType="ListBoxItem">
@@ -481,9 +498,9 @@
         </Border>
 
         <Border Grid.Row="6"
-                Background="{StaticResource CrustBrush}"
+                Background="{DynamicResource CrustBrush}"
                 Padding="16,7"
-                BorderBrush="{StaticResource Surface0Brush}"
+                BorderBrush="{DynamicResource Surface0Brush}"
                 BorderThickness="0,1,0,0">
             <Grid>
                 <Grid.ColumnDefinitions>

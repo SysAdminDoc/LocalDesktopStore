@@ -51,7 +51,7 @@ LocalDesktopStore knows about all of those. It picks the right asset off each re
 - **Hidden repo filtering** — hide a card directly from the catalog or manage hidden `owner/repo` entries in settings
 - **Optional GitHub PAT** — public limit is 60 req/h; with a PAT it's 5,000/h and unlocks private repos
 - **WinGet manifest export** — export a v1.6 singleton manifest per card, with a locally calculated installer hash and the appropriate MSI / Inno / NSIS / EXE / portable ZIP metadata
-- **Catppuccin Mocha dark theme** — matches LocalChromeStore exactly
+- **Catppuccin Mocha / Latte themes** — switch palettes at runtime, with an optional Windows system accent
 - **Activity log + crash log** — every install / uninstall / run / error is logged in-app and to disk
 - **Async** — every API call, download, and installer invocation runs off the UI thread
 
@@ -87,9 +87,10 @@ dotnet build src/LocalDesktopStore/LocalDesktopStore.csproj -c Release
 4. *(Optional)* Add extra GitHub users or organizations under **Extra GitHub owners**
 5. *(Optional)* Add hidden repos as `owner/repo`, or hide a card from the catalog after refresh
 6. *(Optional)* Enable **Filter by topic** if you want to limit to repos tagged with `windows-app`
-7. Leave **Verify SHA-256 sidecar** on if your releases ship `.sha256.txt` sidecars (LocalChromeStore / LocalDesktopStore convention)
-8. Keep your MSI/EXE release assets Authenticode-signed; LocalDesktopStore refuses unsigned or untrusted installers and warns before a pinned publisher changes
-9. Click **Save and refresh**
+7. *(Optional)* Switch to the **Catppuccin Latte light theme** or enable the **Windows system accent** under Appearance; both apply immediately and persist when you save settings
+8. Leave **Verify SHA-256 sidecar** on if your releases ship `.sha256.txt` sidecars (LocalChromeStore / LocalDesktopStore convention)
+9. Keep your MSI/EXE release assets Authenticode-signed; LocalDesktopStore refuses unsigned or untrusted installers and warns before a pinned publisher changes
+10. Click **Save and refresh**
 
 Every qualifying repo appears as a card. Click **Install** on a card — LocalDesktopStore downloads the asset to `%LOCALAPPDATA%\LocalDesktopStore\downloads\`, verifies the hash, runs the correct installer, and remembers what it installed. Click **Run** to launch. Click **Uninstall** to remove.
 
@@ -146,7 +147,7 @@ WPF on .NET 9 — MVVM, no third-party MVVM toolkit. The whole app is ~1,800 lin
   - `SettingsService` — JSON persistence
 - `ViewModels/` — `MainViewModel` orchestrates everything; `AppCardViewModel` per-card state
 - `Views/` — `AppCardView` user control + the main window
-- `Themes/` — Catppuccin Mocha resource dictionary
+- `Themes/` — Catppuccin Mocha and Latte resource dictionaries plus the shared runtime-switchable control styles
 
 Install-state detection runs as a registry diff: snapshot uninstall keys before invoking the installer, snapshot again afterward, take the new entry. That's far more reliable than trying to guess the installer's `DisplayName` from the repo name. We never write to the registry — the installer does.
 
