@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
+using Microsoft.Win32;
 using LocalDesktopStore.Models;
 using LocalDesktopStore.Services;
 
@@ -42,6 +43,8 @@ public sealed class MainViewModel : ViewModelBase
     public ICommand UpdateSelectedCommand { get; }
     public ICommand UninstallSelectedCommand { get; }
     public ICommand ClearSelectionCommand { get; }
+    public ICommand ExportCatalogCommand { get; }
+    public ICommand ImportCatalogCommand { get; }
     public ICommand SaveSettingsCommand { get; }
     public ICommand SaveAndRefreshCommand { get; }
     public ICommand OpenInstallDirCommand { get; }
@@ -77,6 +80,8 @@ public sealed class MainViewModel : ViewModelBase
         UpdateSelectedCommand = new AsyncRelayCommand(_ => UpdateSelectedAsync(), _ => !Busy && HasSelection);
         UninstallSelectedCommand = new AsyncRelayCommand(_ => UninstallSelectedAsync(), _ => !Busy && HasSelection);
         ClearSelectionCommand = new RelayCommand(_ => ClearSelection(), _ => HasSelection);
+        ExportCatalogCommand = new RelayCommand(_ => ExportCatalog());
+        ImportCatalogCommand = new RelayCommand(_ => ImportCatalog());
         SaveSettingsCommand = new RelayCommand(_ => { SaveSettings(); });
         SaveAndRefreshCommand = new AsyncRelayCommand(async _ =>
         {
@@ -567,6 +572,91 @@ public sealed class MainViewModel : ViewModelBase
     {
         try { Process.Start(new ProcessStartInfo("explorer.exe", $"\"{_settingsService.AppsRoot(_settings)}\"") { UseShellExecute = true }); }
         catch (Exception ex) { Log($"! {ex.Message}"); }
+    }
+
+    private void ExportCatalog()
+    {
+        var dialog = new SaveFileDialog
+        {
+            Title = "Export LocalDesktopStore catalog",
+            Filter = "LocalDesktopStore catalog (*.lds.json)|*.lds.json|JSON files (*.json)|*.json",
+            DefaultExt = ".lds.json",
+            AddExtension = true,
+            FileName = "LocalDesktopStore-catalog.lds.json",
+            OverwritePrompt = true
+        };
+        if (dialog.ShowDialog() != true) return;
+
+        try
+        {
+            CatalogTransferService.Export(dialog.FileName, _settings, _installer.Installed);
+            StatusText = $"Catalog exported to {dialog.FileName}.";
+            Log(StatusText);
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"Catalog export failed: {ex.Message}";
+            Log($"! {StatusText}");
+        }
+    }
+
+    private void ImportCatalog()
+    {
+        var dialog = new OpenFileDialog
+        {
+            Title = "Import LocalDesktopStore catalog",
+            Filter = "LocalDesktopStore catalog (*.lds.json)|*.lds.json|JSON files (*.json)|*.json",
+            CheckFileExists = true,
+            Multiselect = false
+        };
+        if (dialog.ShowDialog() != true) return;
+
+        try
+        {
+            var document = CatalogTransferService.Import(dialog.FileName);
+            _settings.GitHubUser = document.PrimaryOwner.Trim();
+            _settings.ExtraOwners = NormalizeOwners(document.ExtraOwners, _settings.GitHubUser).ToList();
+            _settings.HiddenRepos = document.Apps
+                .Where(app => app.Hidden)
+                .Select(app => $"{app.RepoOwner}/{app.RepoName}")
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+            _settings.UseTopicFilter = document.UseTopicFilter;
+            _settings.TopicFilter = document.TopicFilter.Trim();
+            _settings.VerifyHashSidecar = document.VerifyHashSidecar;
+            _settings.InstallRootOverride = string.IsNullOrWhiteSpace(document.InstallRootOverride)
+                ? null
+                : document.InstallRootOverride.Trim();
+            _settings.CatalogVersionPins = document.Apps
+                .Where(app => !string.IsNullOrWhiteSpace(app.VersionPin ?? app.InstalledVersion))
+                .ToDictionary(
+                    app => $"{app.RepoOwner}/{app.RepoName}",
+                    app => (app.VersionPin ?? app.InstalledVersion)!,
+                    StringComparer.OrdinalIgnoreCase);
+            _settingsService.Save(_settings);
+
+            _githubUserInput = _settings.GitHubUser;
+            _extraOwnerInput = string.Empty;
+            _hiddenRepoInput = string.Empty;
+            ReplaceCollection(ExtraOwners, _settings.ExtraOwners);
+            ReplaceCollection(HiddenRepos, _settings.HiddenRepos);
+            OnPropertyChanged(nameof(GitHubUserInput));
+            OnPropertyChanged(nameof(UseTopicFilter));
+            OnPropertyChanged(nameof(TopicFilter));
+            OnPropertyChanged(nameof(VerifyHashSidecar));
+            OnPropertyChanged(nameof(InstallRootOverride));
+            SettingsSaved?.Invoke(this, EventArgs.Empty);
+            ApplyHiddenRepoState();
+            RefreshAppView();
+            RefreshMetrics();
+            StatusText = $"Catalog imported from {dialog.FileName}. GitHub token was left unchanged.";
+            Log(StatusText);
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"Catalog import failed: {ex.Message}";
+            Log($"! {StatusText}");
+        }
     }
 
     public void LogMessage(string line) => Log(line);

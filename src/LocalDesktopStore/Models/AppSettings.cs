@@ -14,4 +14,5 @@ public sealed class AppSettings
     public bool UseSystemAccent { get; set; }
     public bool EnableScheduledUpdateChecks { get; set; }
     public int ScheduledUpdateIntervalHours { get; set; } = 6;
+    public Dictionary<string, string> CatalogVersionPins { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 }

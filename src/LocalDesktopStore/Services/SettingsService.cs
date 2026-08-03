@@ -62,6 +62,8 @@ public sealed class SettingsService
             var settings = JsonSerializer.Deserialize<AppSettings>(json, JsonOpts) ?? new AppSettings();
             settings.ExtraOwners ??= new List<string>();
             settings.HiddenRepos ??= new List<string>();
+            settings.CatalogVersionPins ??= new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            settings.CatalogVersionPins = new Dictionary<string, string>(settings.CatalogVersionPins, StringComparer.OrdinalIgnoreCase);
             return settings;
         }
         catch { return new AppSettings(); }

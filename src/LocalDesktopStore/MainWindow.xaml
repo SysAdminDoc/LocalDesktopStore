@@ -35,6 +35,7 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
                 <Border Grid.Column="0"
@@ -64,6 +65,20 @@
                         <Run Text=" installed" />
                     </TextBlock>
                 </StackPanel>
+
+                <Menu Grid.Column="2"
+                      VerticalAlignment="Top"
+                      Margin="16,0,0,0">
+                    <MenuItem Header="_File"
+                              AutomationProperties.Name="File menu">
+                        <MenuItem Header="_Export catalog"
+                                  Command="{Binding ExportCatalogCommand}"
+                                  AutomationProperties.Name="Export catalog" />
+                        <MenuItem Header="_Import catalog"
+                                  Command="{Binding ImportCatalogCommand}"
+                                  AutomationProperties.Name="Import catalog" />
+                    </MenuItem>
+                </Menu>
 
             </Grid>
         </Border>

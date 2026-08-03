@@ -54,6 +54,7 @@ LocalDesktopStore knows about all of those. It picks the right asset off each re
 - **Catppuccin Mocha / Latte themes** — switch palettes at runtime, with an optional Windows system accent
 - **Scheduled background update checks** — optionally poll every 1–24 hours, keep a least-privilege interactive Task Scheduler entry, and show native tray notifications without installing automatically
 - **Bulk selection operations** — select cards and run install, update, or uninstall sequentially with one aggregate status banner
+- **Catalog transfer** — File → Export/Import round-trips owners, hidden per-app overrides, install preferences, and version pins in a `.lds.json` file without exporting the GitHub PAT
 - **Activity log + crash log** — every install / uninstall / run / error is logged in-app and to disk
 - **Async** — every API call, download, and installer invocation runs off the UI thread
 
@@ -96,6 +97,8 @@ dotnet build src/LocalDesktopStore/LocalDesktopStore.csproj -c Release
 11. Click **Save and refresh**
 
 Select one or more card checkboxes to reveal **Install selected**, **Update selected**, and **Uninstall selected**. Bulk work is deliberately sequential so installer output and failures remain attributable to one app at a time.
+
+Use **File → Export catalog** to create a portable `.lds.json` loadout, then **File → Import catalog** on another machine. Imported version pins are stored as catalog metadata; the destination's real install manifest remains authoritative and no app is installed by import.
 
 Every qualifying repo appears as a card. Click **Install** on a card — LocalDesktopStore downloads the asset to `%LOCALAPPDATA%\LocalDesktopStore\downloads\`, verifies the hash, runs the correct installer, and remembers what it installed. Click **Run** to launch. Click **Uninstall** to remove.
 
@@ -152,6 +155,7 @@ WPF on .NET 9 — MVVM, no third-party MVVM toolkit. The whole app is ~1,800 lin
   - `SettingsService` — JSON persistence
   - `ScheduledUpdateService` / `ScheduledTaskRegistrar` — opt-in polling, least-privilege Task Scheduler registration, and headless checks
   - `TrayIconService` — native `Shell_NotifyIcon` update notifications
+  - `CatalogTransferService` — validated, token-free `.lds.json` import/export
 - `ViewModels/` — `MainViewModel` orchestrates everything; `AppCardViewModel` per-card state
 - `Views/` — `AppCardView` user control + the main window
 - `Themes/` — Catppuccin Mocha and Latte resource dictionaries plus the shared runtime-switchable control styles
