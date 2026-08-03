@@ -38,6 +38,10 @@ public sealed class MainViewModel : ViewModelBase
 
     public ICommand RefreshCommand { get; }
     public ICommand UpdateAllCommand { get; }
+    public ICommand InstallSelectedCommand { get; }
+    public ICommand UpdateSelectedCommand { get; }
+    public ICommand UninstallSelectedCommand { get; }
+    public ICommand ClearSelectionCommand { get; }
     public ICommand SaveSettingsCommand { get; }
     public ICommand SaveAndRefreshCommand { get; }
     public ICommand OpenInstallDirCommand { get; }
@@ -69,6 +73,10 @@ public sealed class MainViewModel : ViewModelBase
 
         RefreshCommand = new AsyncRelayCommand(_ => RefreshAsync(), _ => !Busy);
         UpdateAllCommand = new AsyncRelayCommand(_ => UpdateAllAsync(), _ => !Busy && OutdatedCount > 0);
+        InstallSelectedCommand = new AsyncRelayCommand(_ => InstallSelectedAsync(), _ => !Busy && HasSelection);
+        UpdateSelectedCommand = new AsyncRelayCommand(_ => UpdateSelectedAsync(), _ => !Busy && HasSelection);
+        UninstallSelectedCommand = new AsyncRelayCommand(_ => UninstallSelectedAsync(), _ => !Busy && HasSelection);
+        ClearSelectionCommand = new RelayCommand(_ => ClearSelection(), _ => HasSelection);
         SaveSettingsCommand = new RelayCommand(_ => { SaveSettings(); });
         SaveAndRefreshCommand = new AsyncRelayCommand(async _ =>
         {
@@ -274,6 +282,9 @@ public sealed class MainViewModel : ViewModelBase
     public bool HasExtraOwners => ExtraOwners.Count > 0;
     public bool HasHiddenRepos => HiddenRepos.Count > 0;
     public bool HasOutdated => OutdatedCount > 0;
+    public int SelectedCount => Apps.Count(app => app.IsSelected);
+    public bool HasSelection => SelectedCount > 0;
+    public string SelectionSummary => SelectedCount == 1 ? "1 app selected" : $"{SelectedCount} apps selected";
     public string UpdateAllButtonLabel => OutdatedCount > 0
         ? $"Update all ({OutdatedCount})"
         : "Update all";
@@ -330,7 +341,7 @@ public sealed class MainViewModel : ViewModelBase
             foreach (var info in infos)
             {
                 Apps.Add(new AppCardViewModel(
-                    info, _installer, _github, _settingsService, () => _settings, Log, RefreshAfterChange));
+                    info, _installer, _github, _settingsService, () => _settings, Log, RefreshAfterChange, RefreshSelectionMetrics));
             }
             ApplyHiddenRepoState();
             RefreshAppView();
@@ -352,12 +363,50 @@ public sealed class MainViewModel : ViewModelBase
         }
     }
 
+    private Task InstallSelectedAsync()
+    {
+        var queue = Apps
+            .Where(app => app.IsSelected && app.HasAsset && !app.IsInstalled)
+            .ToList();
+        return RunBatchAsync("Installing", queue, app => app.RunInstallAsync(CancellationToken.None));
+    }
+
+    private Task UpdateSelectedAsync()
+    {
+        var queue = Apps
+            .Where(app => app.IsSelected && app.HasAsset && app.IsUpdateAvailable)
+            .ToList();
+        return RunBatchAsync("Updating", queue, app => app.RunInstallAsync(CancellationToken.None));
+    }
+
+    private Task UninstallSelectedAsync()
+    {
+        var queue = Apps
+            .Where(app => app.IsSelected && app.IsInstalled)
+            .ToList();
+        return RunBatchAsync("Uninstalling", queue, app => app.UninstallAsync());
+    }
+
     private async Task UpdateAllAsync()
     {
         var queue = Apps.Where(a => a.IsUpdateAvailable && a.HasAsset).ToList();
+        await RunBatchAsync("Updating", queue, card => card.RunInstallAsync(CancellationToken.None));
+    }
+
+    private async Task RunBatchAsync(
+        string action,
+        IReadOnlyList<AppCardViewModel> queue,
+        Func<AppCardViewModel, Task> operation)
+    {
         if (queue.Count == 0)
         {
-            StatusText = "Nothing to update.";
+            StatusText = action switch
+            {
+                "Installing" => "No selected apps are ready to install.",
+                "Updating" => "Nothing to update.",
+                "Uninstalling" => "No selected apps are installed.",
+                _ => "Nothing to do."
+            };
             return;
         }
 
@@ -369,12 +418,18 @@ public sealed class MainViewModel : ViewModelBase
             for (var idx = 0; idx < queue.Count; idx++)
             {
                 var card = queue[idx];
-                StatusText = $"Updating {card.Title} ({idx + 1}/{queue.Count})...";
-                Log($"Update {idx + 1}/{queue.Count}: {card.Repo} -> {card.Info.DisplayVersion}");
+                StatusText = $"{action} {card.Title} ({idx + 1}/{queue.Count})...";
+                Log($"{action} {idx + 1}/{queue.Count}: {card.Repo} -> {card.Info.DisplayVersion}");
                 try
                 {
-                    await card.RunInstallAsync(CancellationToken.None);
-                    if (card.HasError) failed++; else ok++;
+                    await operation(card);
+                    if (card.HasError)
+                        failed++;
+                    else
+                    {
+                        ok++;
+                        card.IsSelected = false;
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -383,8 +438,8 @@ public sealed class MainViewModel : ViewModelBase
                 }
             }
             StatusText = failed == 0
-                ? $"Updated {ok} app(s)."
-                : $"Updated {ok} app(s); {failed} failed — see activity log.";
+                ? $"{action} {ok} app(s)."
+                : $"{action} {ok} app(s); {failed} failed — see activity log.";
             Log(StatusText);
         }
         finally
@@ -540,6 +595,22 @@ public sealed class MainViewModel : ViewModelBase
         OnPropertyChanged(nameof(ShowEmptyState));
         OnPropertyChanged(nameof(EmptyStateTitle));
         OnPropertyChanged(nameof(EmptyStateMessage));
+        RefreshSelectionMetrics();
+    }
+
+    private void ClearSelection()
+    {
+        foreach (var app in Apps.Where(app => app.IsSelected).ToList())
+            app.IsSelected = false;
+        RefreshSelectionMetrics();
+    }
+
+    private void RefreshSelectionMetrics()
+    {
+        OnPropertyChanged(nameof(SelectedCount));
+        OnPropertyChanged(nameof(HasSelection));
+        OnPropertyChanged(nameof(SelectionSummary));
+        CommandManager.InvalidateRequerySuggested();
     }
 
     private void ApplyHiddenRepoState()

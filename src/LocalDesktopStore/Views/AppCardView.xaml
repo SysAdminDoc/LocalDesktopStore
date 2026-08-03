@@ -86,6 +86,15 @@
                             ToolTip="Hide this app from the catalog."
                             Margin="8,-4,0,0" />
                 </StackPanel>
+
+                <CheckBox Grid.Column="0"
+                          IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                          AutomationProperties.Name="Select this app for bulk operations"
+                          ToolTip="Select this app for bulk install, update, or uninstall operations."
+                          HorizontalAlignment="Left"
+                          VerticalAlignment="Top"
+                          Margin="-6,-6,0,0"
+                          Panel.ZIndex="2" />
             </Grid>
 
             <Grid Grid.Row="1" Margin="0,0,0,10">

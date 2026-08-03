@@ -53,6 +53,7 @@ LocalDesktopStore knows about all of those. It picks the right asset off each re
 - **WinGet manifest export** — export a v1.6 singleton manifest per card, with a locally calculated installer hash and the appropriate MSI / Inno / NSIS / EXE / portable ZIP metadata
 - **Catppuccin Mocha / Latte themes** — switch palettes at runtime, with an optional Windows system accent
 - **Scheduled background update checks** — optionally poll every 1–24 hours, keep a least-privilege interactive Task Scheduler entry, and show native tray notifications without installing automatically
+- **Bulk selection operations** — select cards and run install, update, or uninstall sequentially with one aggregate status banner
 - **Activity log + crash log** — every install / uninstall / run / error is logged in-app and to disk
 - **Async** — every API call, download, and installer invocation runs off the UI thread
 
@@ -93,6 +94,8 @@ dotnet build src/LocalDesktopStore/LocalDesktopStore.csproj -c Release
 9. Leave **Verify SHA-256 sidecar** on if your releases ship `.sha256.txt` sidecars (LocalChromeStore / LocalDesktopStore convention)
 10. Keep your MSI/EXE release assets Authenticode-signed; LocalDesktopStore refuses unsigned or untrusted installers and warns before a pinned publisher changes
 11. Click **Save and refresh**
+
+Select one or more card checkboxes to reveal **Install selected**, **Update selected**, and **Uninstall selected**. Bulk work is deliberately sequential so installer output and failures remain attributable to one app at a time.
 
 Every qualifying repo appears as a card. Click **Install** on a card — LocalDesktopStore downloads the asset to `%LOCALAPPDATA%\LocalDesktopStore\downloads\`, verifies the hash, runs the correct installer, and remembers what it installed. Click **Run** to launch. Click **Uninstall** to remove.
 
@@ -163,7 +166,8 @@ See [ROADMAP.md](ROADMAP.md). Highlights:
 
 - **v0.2.1** — Multi-owner settings editor and hidden-repo filtering are live.
 - **Shipped** — Authenticode publisher pinning, per-card error/crash-log links, accessibility names/live log, WinGet manifest export, and Catppuccin Latte runtime theming.
-- **Next** — scheduled background checks, bulk operations, catalog import/export, and MSIX packaging support.
+- **Shipped next** — scheduled background checks and bulk operations.
+- **Next** — catalog import/export, MSIX packaging support, and WinGet COM detection.
 - **v0.4.0** — Cross-platform port via Avalonia (Linux / macOS package equivalents — `.deb`, `.dmg`).
 
 ---

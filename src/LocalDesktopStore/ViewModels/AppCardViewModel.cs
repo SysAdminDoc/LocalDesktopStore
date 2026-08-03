@@ -24,6 +24,8 @@ public sealed class AppCardViewModel : ViewModelBase
     private InstalledApp? _installed;
     private BitmapImage? _icon;
     private bool _hidden;
+    private bool _selected;
+    private readonly Action? _selectionChanged;
 
     public AppInfo Info { get; }
 
@@ -34,7 +36,8 @@ public sealed class AppCardViewModel : ViewModelBase
         SettingsService settings,
         Func<AppSettings> settingsAccessor,
         Action<string> log,
-        Action refreshParent)
+        Action refreshParent,
+        Action? selectionChanged = null)
     {
         Info = info;
         _installer = installer;
@@ -44,10 +47,11 @@ public sealed class AppCardViewModel : ViewModelBase
         _settingsAccessor = settingsAccessor;
         _log = log;
         _refreshParent = refreshParent;
+        _selectionChanged = selectionChanged;
         _installed = installer.Find(info.RepoOwner, info.RepoName);
 
         InstallCommand = new AsyncRelayCommand(_ => RunInstallAsync(CancellationToken.None), _ => CanInstall);
-        UninstallCommand = new AsyncRelayCommand(UninstallAsync, _ => IsInstalled && !Busy);
+        UninstallCommand = new AsyncRelayCommand(_ => UninstallAsync(), _ => IsInstalled && !Busy);
         RunCommand = new RelayCommand(_ => Run(), _ => CanRun);
         OpenRepoCommand = new RelayCommand(_ => OpenUrl(Info.RepoUrl));
         OpenInstallDirCommand = new RelayCommand(_ => OpenDir(), _ => CanOpenDir);
@@ -79,6 +83,15 @@ public sealed class AppCardViewModel : ViewModelBase
     public bool CanExport => HasAsset && !Busy;
     public bool CanRun => IsInstalled && !Busy;
     public bool IsHidden => _hidden;
+    public bool IsSelected
+    {
+        get => _selected;
+        set
+        {
+            if (SetField(ref _selected, value))
+                _selectionChanged?.Invoke();
+        }
+    }
     public bool CanOpenDir => IsInstalled && !Busy
         && (_installed?.PortableRoot != null || _installed?.InstallLocation != null);
     public string InstallButtonLabel
@@ -191,7 +204,7 @@ public sealed class AppCardViewModel : ViewModelBase
         }
     }
 
-    private async Task UninstallAsync(object? _)
+    public async Task UninstallAsync()
     {
         if (_installed is null) return;
         Busy = true;
@@ -373,6 +386,8 @@ public sealed class AppCardViewModel : ViewModelBase
 
     public void SetHidden(bool hidden)
     {
+        if (hidden)
+            IsSelected = false;
         SetField(ref _hidden, hidden, nameof(IsHidden));
     }
 
