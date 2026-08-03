@@ -295,6 +295,37 @@
                                    Margin="0,7,0,0"
                                    Text="Uses the Windows accent for the primary action and focus ring." />
 
+                        <TextBlock Text="Background updates"
+                                   Style="{StaticResource InputLabel}"
+                                   Margin="0,16,0,5" />
+                        <CheckBox Content="Check for updates in the background"
+                                  IsChecked="{Binding EnableScheduledUpdateChecks}"
+                                  AutomationProperties.Name="Check for updates in the background" />
+                        <Grid Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="72" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0"
+                                       Text="Interval (hours)"
+                                       Style="{StaticResource MuteText}"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,8,0" />
+                            <TextBox Grid.Column="1"
+                                     Text="{Binding ScheduledUpdateIntervalHours, UpdateSourceTrigger=PropertyChanged}"
+                                     AutomationProperties.Name="Background update interval in hours"
+                                     IsEnabled="{Binding EnableScheduledUpdateChecks}"
+                                     Padding="8,5"
+                                     MinHeight="30" />
+                            <TextBlock Grid.Column="2"
+                                       Text="1–24; runs as the signed-in user and never installs automatically."
+                                       Style="{StaticResource MuteText}"
+                                       TextWrapping="Wrap"
+                                       Margin="8,0,0,0"
+                                       VerticalAlignment="Center" />
+                        </Grid>
+
                         <CheckBox Content="Filter by GitHub topic"
                                   IsChecked="{Binding UseTopicFilter}"
                                   AutomationProperties.Name="Filter discovery by GitHub topic" />

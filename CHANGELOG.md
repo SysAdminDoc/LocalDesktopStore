@@ -10,6 +10,7 @@ All notable changes to LocalDesktopStore are documented here. Format follows [Ke
 - **Accessibility names and live activity log** (N11) — interactive controls expose deliberate UI Automation names, and the activity log uses a polite live region for Narrator announcements.
 - **WinGet manifest export** (N12) — each card can download/hash its release asset and write a v1.6 singleton manifest under `manifests/<first-letter>/<owner>/<repo>/<version>/`, including the installer type, silent switches, architecture, SHA-256, and nested portable metadata where applicable.
 - **Runtime theme switching** (X1) — settings can swap between Catppuccin Mocha and Latte immediately, with an optional Windows system-accent override for primary actions and focus rings.
+- **Scheduled background update checks** (X2) — optional 1–24 hour polling uses a current-user, least-privilege Task Scheduler entry, a headless `--scheduled-check` path, and native tray notifications; it never installs updates automatically.
 
 ### Changed
 - Refreshes now use a lockfile aligned with the framework-dependent project target, so locked restores no longer carry a stale `win-x64` runtime graph.

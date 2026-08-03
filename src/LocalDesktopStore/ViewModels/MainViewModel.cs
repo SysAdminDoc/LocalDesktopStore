@@ -26,11 +26,15 @@ public sealed class MainViewModel : ViewModelBase
     private string _extraOwnerInput = "";
     private string _hiddenRepoInput = "";
 
+    public event EventHandler? SettingsSaved;
+
     public ObservableCollection<AppCardViewModel> Apps { get; } = new();
     public ICollectionView AppsView { get; }
     public ObservableCollection<string> LogLines { get; } = new();
     public ObservableCollection<string> ExtraOwners { get; } = new();
     public ObservableCollection<string> HiddenRepos { get; } = new();
+
+    public AppSettings CurrentSettings => _settings;
 
     public ICommand RefreshCommand { get; }
     public ICommand UpdateAllCommand { get; }
@@ -222,6 +226,33 @@ public sealed class MainViewModel : ViewModelBase
         }
     }
 
+    public bool EnableScheduledUpdateChecks
+    {
+        get => _settings.EnableScheduledUpdateChecks;
+        set
+        {
+            if (_settings.EnableScheduledUpdateChecks != value)
+            {
+                _settings.EnableScheduledUpdateChecks = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public int ScheduledUpdateIntervalHours
+    {
+        get => _settings.ScheduledUpdateIntervalHours;
+        set
+        {
+            var normalized = Math.Clamp(value, 1, 24);
+            if (_settings.ScheduledUpdateIntervalHours != normalized)
+            {
+                _settings.ScheduledUpdateIntervalHours = normalized;
+                OnPropertyChanged();
+            }
+        }
+    }
+
     public string InstallRootOverride
     {
         get => _settings.InstallRootOverride ?? string.Empty;
@@ -391,11 +422,13 @@ public sealed class MainViewModel : ViewModelBase
         _settings.GitHubUser = user;
         _settings.GitHubToken = string.IsNullOrWhiteSpace(GitHubTokenInput) ? null : GitHubTokenInput.Trim();
         _settings.TopicFilter = topic;
+        _settings.ScheduledUpdateIntervalHours = Math.Clamp(_settings.ScheduledUpdateIntervalHours, 1, 24);
         _settings.ExtraOwners = NormalizeOwners(ExtraOwners, user).ToList();
         _settings.HiddenRepos = NormalizeRepos(HiddenRepos).ToList();
         ReplaceCollection(ExtraOwners, _settings.ExtraOwners);
         ReplaceCollection(HiddenRepos, _settings.HiddenRepos);
         _settingsService.Save(_settings);
+        SettingsSaved?.Invoke(this, EventArgs.Empty);
         OnPropertyChanged(nameof(TopicFilter));
         ApplyHiddenRepoState();
         RefreshAppView();
@@ -480,6 +513,8 @@ public sealed class MainViewModel : ViewModelBase
         try { Process.Start(new ProcessStartInfo("explorer.exe", $"\"{_settingsService.AppsRoot(_settings)}\"") { UseShellExecute = true }); }
         catch (Exception ex) { Log($"! {ex.Message}"); }
     }
+
+    public void LogMessage(string line) => Log(line);
 
     private void Log(string line) => _logSink.Append(line);
 

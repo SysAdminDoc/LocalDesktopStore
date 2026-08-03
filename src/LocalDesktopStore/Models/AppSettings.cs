@@ -12,4 +12,6 @@ public sealed class AppSettings
     public string? InstallRootOverride { get; set; }
     public bool UseLightTheme { get; set; }
     public bool UseSystemAccent { get; set; }
+    public bool EnableScheduledUpdateChecks { get; set; }
+    public int ScheduledUpdateIntervalHours { get; set; } = 6;
 }

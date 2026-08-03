@@ -52,6 +52,7 @@ LocalDesktopStore knows about all of those. It picks the right asset off each re
 - **Optional GitHub PAT** — public limit is 60 req/h; with a PAT it's 5,000/h and unlocks private repos
 - **WinGet manifest export** — export a v1.6 singleton manifest per card, with a locally calculated installer hash and the appropriate MSI / Inno / NSIS / EXE / portable ZIP metadata
 - **Catppuccin Mocha / Latte themes** — switch palettes at runtime, with an optional Windows system accent
+- **Scheduled background update checks** — optionally poll every 1–24 hours, keep a least-privilege interactive Task Scheduler entry, and show native tray notifications without installing automatically
 - **Activity log + crash log** — every install / uninstall / run / error is logged in-app and to disk
 - **Async** — every API call, download, and installer invocation runs off the UI thread
 
@@ -88,9 +89,10 @@ dotnet build src/LocalDesktopStore/LocalDesktopStore.csproj -c Release
 5. *(Optional)* Add hidden repos as `owner/repo`, or hide a card from the catalog after refresh
 6. *(Optional)* Enable **Filter by topic** if you want to limit to repos tagged with `windows-app`
 7. *(Optional)* Switch to the **Catppuccin Latte light theme** or enable the **Windows system accent** under Appearance; both apply immediately and persist when you save settings
-8. Leave **Verify SHA-256 sidecar** on if your releases ship `.sha256.txt` sidecars (LocalChromeStore / LocalDesktopStore convention)
-9. Keep your MSI/EXE release assets Authenticode-signed; LocalDesktopStore refuses unsigned or untrusted installers and warns before a pinned publisher changes
-10. Click **Save and refresh**
+8. *(Optional)* Enable **Check for updates in the background** and choose an interval from 1–24 hours; checks run as your signed-in user, notify through the tray, and never install automatically
+9. Leave **Verify SHA-256 sidecar** on if your releases ship `.sha256.txt` sidecars (LocalChromeStore / LocalDesktopStore convention)
+10. Keep your MSI/EXE release assets Authenticode-signed; LocalDesktopStore refuses unsigned or untrusted installers and warns before a pinned publisher changes
+11. Click **Save and refresh**
 
 Every qualifying repo appears as a card. Click **Install** on a card — LocalDesktopStore downloads the asset to `%LOCALAPPDATA%\LocalDesktopStore\downloads\`, verifies the hash, runs the correct installer, and remembers what it installed. Click **Run** to launch. Click **Uninstall** to remove.
 
@@ -145,6 +147,8 @@ WPF on .NET 9 — MVVM, no third-party MVVM toolkit. The whole app is ~1,800 lin
   - `HashVerifier` — `<asset>.sha256.txt` sidecar verification
   - `ShortcutService` — creates Start Menu `.lnk` files via `IShellLink` COM
   - `SettingsService` — JSON persistence
+  - `ScheduledUpdateService` / `ScheduledTaskRegistrar` — opt-in polling, least-privilege Task Scheduler registration, and headless checks
+  - `TrayIconService` — native `Shell_NotifyIcon` update notifications
 - `ViewModels/` — `MainViewModel` orchestrates everything; `AppCardViewModel` per-card state
 - `Views/` — `AppCardView` user control + the main window
 - `Themes/` — Catppuccin Mocha and Latte resource dictionaries plus the shared runtime-switchable control styles
@@ -158,8 +162,8 @@ Install-state detection runs as a registry diff: snapshot uninstall keys before 
 See [ROADMAP.md](ROADMAP.md). Highlights:
 
 - **v0.2.1** — Multi-owner settings editor and hidden-repo filtering are live.
-- **Next** — Authenticode publisher pinning, per-card error/crash-log links, accessibility names/live log, WinGet manifest export, and MSIX packaging support.
-- **v0.3.0** — Catppuccin Latte light theme + accent color picker.
+- **Shipped** — Authenticode publisher pinning, per-card error/crash-log links, accessibility names/live log, WinGet manifest export, and Catppuccin Latte runtime theming.
+- **Next** — scheduled background checks, bulk operations, catalog import/export, and MSIX packaging support.
 - **v0.4.0** — Cross-platform port via Avalonia (Linux / macOS package equivalents — `.deb`, `.dmg`).
 
 ---
