@@ -8,6 +8,9 @@
   <data name="MainWindow_FileMenu" xml:space="preserve"><value>_Archivo</value></data>
   <data name="MainWindow_ExportCatalog" xml:space="preserve"><value>_Exportar catálogo</value></data>
   <data name="MainWindow_ImportCatalog" xml:space="preserve"><value>_Importar catálogo</value></data>
+  <data name="MainWindow_CheckForUpdates" xml:space="preserve"><value>Buscar actualizaciones de LocalDesktopStore</value></data>
+  <data name="MainWindow_CheckForUpdatesAutomation" xml:space="preserve"><value>Buscar actualizaciones de LocalDesktopStore</value></data>
+  <data name="MainWindow_CheckForUpdatesTooltip" xml:space="preserve"><value>Descarga y aplica la versión más reciente de Velopack cuando la aplicación se instaló con Velopack.</value></data>
   <data name="MainWindow_InstalledOnly" xml:space="preserve"><value>Solo instaladas</value></data>
   <data name="MainWindow_InstallFolder" xml:space="preserve"><value>Carpeta de instalación</value></data>
   <data name="MainWindow_Refresh" xml:space="preserve"><value>Actualizar</value></data>

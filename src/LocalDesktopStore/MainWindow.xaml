@@ -78,6 +78,10 @@
                         <MenuItem Header="{loc:Loc Key=MainWindow_ImportCatalog}"
                                   Command="{Binding ImportCatalogCommand}"
                                   AutomationProperties.Name="{loc:Loc Key=MainWindow_ImportCatalogAutomation}" />
+                        <MenuItem Header="{loc:Loc Key=MainWindow_CheckForUpdates}"
+                                  Command="{Binding CheckForUpdatesCommand}"
+                                  AutomationProperties.Name="{loc:Loc Key=MainWindow_CheckForUpdatesAutomation}"
+                                  ToolTip="{loc:Loc Key=MainWindow_CheckForUpdatesTooltip}" />
                     </MenuItem>
                 </Menu>
 

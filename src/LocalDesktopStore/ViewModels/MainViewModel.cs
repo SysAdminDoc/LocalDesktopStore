@@ -17,6 +17,7 @@ public sealed class MainViewModel : ViewModelBase
     private readonly SettingsService _settingsService;
     private readonly GitHubService _github;
     private readonly OsvService _osv;
+    private readonly VelopackUpdateService _selfUpdate;
     private readonly InstallService _installer;
     private readonly DispatcherLogSink _logSink;
     private AppSettings _settings;
@@ -41,6 +42,7 @@ public sealed class MainViewModel : ViewModelBase
     public AppSettings CurrentSettings => _settings;
 
     public ICommand RefreshCommand { get; }
+    public ICommand CheckForUpdatesCommand { get; }
     public ICommand UpdateAllCommand { get; }
     public ICommand InstallSelectedCommand { get; }
     public ICommand UpdateSelectedCommand { get; }
@@ -62,6 +64,7 @@ public sealed class MainViewModel : ViewModelBase
         _settingsService = new SettingsService();
         _github = new GitHubService();
         _osv = new OsvService();
+        _selfUpdate = new VelopackUpdateService();
         _installer = new InstallService(_settingsService, _github);
         _settings = _settingsService.Load();
         LocalizationProvider.Instance.SetLanguage(_settings.UiLanguage);
@@ -82,6 +85,7 @@ public sealed class MainViewModel : ViewModelBase
         AppsView.SortDescriptions.Add(new SortDescription(nameof(AppCardViewModel.Title), ListSortDirection.Ascending));
 
         RefreshCommand = new AsyncRelayCommand(_ => RefreshAsync(), _ => !Busy);
+        CheckForUpdatesCommand = new AsyncRelayCommand(_ => CheckForSelfUpdateAsync(), _ => !Busy);
         UpdateAllCommand = new AsyncRelayCommand(_ => UpdateAllAsync(), _ => !Busy && OutdatedCount > 0);
         InstallSelectedCommand = new AsyncRelayCommand(_ => InstallSelectedAsync(), _ => !Busy && HasSelection);
         UpdateSelectedCommand = new AsyncRelayCommand(_ => UpdateSelectedAsync(), _ => !Busy && HasSelection);
@@ -454,6 +458,26 @@ public sealed class MainViewModel : ViewModelBase
             .Where(app => app.IsSelected && app.HasAsset && !app.IsInstalled)
             .ToList();
         return RunBatchAsync("Installing", queue, app => app.RunInstallAsync(CancellationToken.None));
+    }
+
+    private async Task CheckForSelfUpdateAsync()
+    {
+        Busy = true;
+        StatusText = "Checking for LocalDesktopStore updates...";
+        try
+        {
+            var progress = new Progress<int>(percent =>
+            {
+                StatusText = $"Downloading LocalDesktopStore update ({percent}%)...";
+            });
+            var result = await _selfUpdate.CheckAndApplyAsync(progress);
+            StatusText = result.Message;
+            Log(result.Message);
+        }
+        finally
+        {
+            Busy = false;
+        }
     }
 
     private Task UpdateSelectedAsync()

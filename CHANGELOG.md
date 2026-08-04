@@ -24,6 +24,7 @@ All notable changes to LocalDesktopStore are documented here. Format follows [Ke
 - **Runtime localization** (L6) — user-facing WPF text now comes from `Strings.resx` with an optional Spanish satellite resource, an English default, and an in-app System default / English / Español culture switch persisted in settings and catalog exports.
 - **Enterprise MSI deployment** (L7) — WiX 5 now builds separately validated unsigned x64 per-user and per-machine packages, with isolated install roots, silent GPO/Intune commands, and a machine-scope DPAPI seed path for preconfigured GitHub owners and PATs.
 - **OSV advisory checks** (L8) — an opt-in refresh setting queries OSV.dev's GitHubReleases ecosystem for each discovered repository, reports bounded results on cards, and keeps network failures informational so discovery and installation remain available.
+- **Velopack self-update** (L9) — Velopack-installed copies can check the public GitHub release channel from File → Check for updates, download the latest package, and restart into it; raw ZIP and WiX MSI installs continue to report their supported manual update path.
 
 ### Changed
 - Refreshes now use a lockfile aligned with the framework-dependent project target, so locked restores no longer carry a stale `win-x64` runtime graph.

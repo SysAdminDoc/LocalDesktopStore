@@ -64,6 +64,7 @@ LocalDesktopStore knows about all of those. It picks the right asset off each re
 - **Catppuccin Mocha / Latte themes** — switch palettes at runtime, with an optional Windows system accent
 - **Runtime localization** — English is the default, with System default and Español choices in Settings; translations live in `Localization/Strings*.resx` and update the WPF surface immediately
 - **Enterprise MSI packaging** — the WiX lane emits separately validated unsigned x64 per-user and per-machine MSIs for GPO / Intune deployment, with an optional machine-scope DPAPI settings seed
+- **Velopack self-update** — Velopack-packaged installs can check the public GitHub release channel, download the verified update package, and restart into the new version; ordinary ZIP installs keep the manual update path
 - **Scheduled background update checks** — optionally poll every 1–24 hours, keep a least-privilege interactive Task Scheduler entry, and show native tray notifications without installing automatically
 - **Bulk selection operations** — select cards and run install, update, or uninstall sequentially with one aggregate status banner
 - **Catalog transfer** — File → Export/Import round-trips owners, hidden per-app overrides, install preferences, and version pins in a `.lds.json` file without exporting the GitHub PAT
@@ -138,6 +139,8 @@ dotnet build src/LocalDesktopStore/LocalDesktopStore.csproj -c Release
 12. *(Optional)* Enable **Check open-source advisories** to query OSV.dev during refresh; results are informational and never block installs
 13. Keep your MSI/EXE release assets Authenticode-signed and your MSIX publisher certificate trusted by Windows; LocalDesktopStore refuses unsigned or untrusted packages and never imports certificates automatically
 14. Click **Save and refresh**
+
+Use **File → Check for LocalDesktopStore updates** when running the Velopack `Setup.exe` install. The command downloads and applies a newer published Velopack package, then restarts the app. A regular ZIP or WiX MSI install reports that the Velopack self-update channel is unavailable and remains on the normal manual/Windows Installer update path.
 
 Select one or more card checkboxes to reveal **Install selected**, **Update selected**, and **Uninstall selected**. Bulk work is deliberately sequential so installer output and failures remain attributable to one app at a time.
 
@@ -221,6 +224,7 @@ WPF on .NET 9 — MVVM, no third-party MVVM toolkit. The whole app is ~1,800 lin
   - `UninstallRegistry` — reads `HKLM`, `HKLM\WOW6432Node`, `HKCU` uninstall keys
   - `HashVerifier` — `<asset>.sha256.txt` sidecar verification
   - `OsvService` — opt-in, bounded OSV.dev advisory queries for GitHub release repositories
+  - `VelopackUpdateService` — explicit GitHub release-channel check/download/restart for Velopack-installed copies
   - `ShortcutService` — creates Start Menu `.lnk` files via `IShellLink` COM
   - `SettingsService` — JSON persistence
   - `ScheduledUpdateService` / `ScheduledTaskRegistrar` — opt-in polling, least-privilege Task Scheduler registration, and headless checks

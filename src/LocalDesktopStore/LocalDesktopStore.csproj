@@ -12,6 +12,7 @@
     <Version>0.2.1</Version>
     <FileVersion>0.2.1.0</FileVersion>
     <AssemblyVersion>0.2.1.0</AssemblyVersion>
+    <StartupObject>LocalDesktopStore.Program</StartupObject>
     <MicrosoftManagementDeployment-Platform>x64</MicrosoftManagementDeployment-Platform>
     <Product>LocalDesktopStore</Product>
     <Company>SysAdminDoc</Company>
@@ -30,6 +31,7 @@
     <PackageReference Include="Microsoft.WindowsPackageManager.ComInterop" Version="1.29.280" />
     <PackageReference Include="DotNet.ReproducibleBuilds" Version="2.0.2" PrivateAssets="all" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
+    <PackageReference Include="Velopack" Version="1.2.0" />
   </ItemGroup>
 
 </Project>

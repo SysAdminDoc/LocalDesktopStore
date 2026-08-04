@@ -13,6 +13,17 @@ public partial class App : Application
 
     protected override void OnStartup(StartupEventArgs e)
     {
+        if (Environment.GetCommandLineArgs()
+            .Skip(1)
+            .Any(arg => arg.StartsWith("--veloapp-", StringComparison.OrdinalIgnoreCase)))
+        {
+            // Velopack fast callbacks must never construct the WPF window. The SDK
+            // handles them during normal packaged launches; this guard keeps the
+            // generated WPF entry point fail-fast if a hook reaches OnStartup.
+            Environment.Exit(0);
+            return;
+        }
+
         DispatcherUnhandledException += OnUnhandledException;
         AppDomain.CurrentDomain.UnhandledException += (s, args) =>
             CrashLog.Write(args.ExceptionObject as Exception);
