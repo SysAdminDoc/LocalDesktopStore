@@ -17,6 +17,9 @@
   <data name="Settings_Appearance" xml:space="preserve"><value>Apariencia</value></data>
   <data name="Settings_LanguageLabel" xml:space="preserve"><value>Idioma</value></data>
   <data name="Settings_BackgroundUpdates" xml:space="preserve"><value>Actualizaciones en segundo plano</value></data>
+  <data name="Settings_AdvisoryChecks" xml:space="preserve"><value>Comprobar avisos de código abierto</value></data>
+  <data name="Settings_AdvisoryChecksAutomation" xml:space="preserve"><value>Comprobar avisos durante la actualización</value></data>
+  <data name="Settings_AdvisoryChecksHelp" xml:space="preserve"><value>Al activarlo, la actualización consulta OSV.dev para buscar avisos abiertos en cada repositorio de versiones de GitHub. Los resultados son informativos y nunca bloquean el descubrimiento ni la instalación.</value></data>
   <data name="Settings_SaveRefresh" xml:space="preserve"><value>Guardar y actualizar</value></data>
   <data name="Settings_Save" xml:space="preserve"><value>Guardar configuración</value></data>
   <data name="Activity_Title" xml:space="preserve"><value>Registro de actividad</value></data>
@@ -25,4 +28,7 @@
   <data name="Card_Hide" xml:space="preserve"><value>Ocultar</value></data>
   <data name="Card_Run" xml:space="preserve"><value>Ejecutar</value></data>
   <data name="Card_Uninstall" xml:space="preserve"><value>Desinstalar</value></data>
+  <data name="Card_AdvisoriesPrefix" xml:space="preserve"><value>Avisos abiertos: </value></data>
+  <data name="Card_AdvisoriesUnavailable" xml:space="preserve"><value>Avisos no disponibles</value></data>
+  <data name="Card_AdvisoriesTooltip" xml:space="preserve"><value>Resultado informativo de OSV.dev; nunca bloquea la instalación.</value></data>
 </root>

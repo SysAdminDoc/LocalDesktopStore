@@ -16,6 +16,7 @@ public sealed class MainViewModel : ViewModelBase
 {
     private readonly SettingsService _settingsService;
     private readonly GitHubService _github;
+    private readonly OsvService _osv;
     private readonly InstallService _installer;
     private readonly DispatcherLogSink _logSink;
     private AppSettings _settings;
@@ -60,6 +61,7 @@ public sealed class MainViewModel : ViewModelBase
     {
         _settingsService = new SettingsService();
         _github = new GitHubService();
+        _osv = new OsvService();
         _installer = new InstallService(_settingsService, _github);
         _settings = _settingsService.Load();
         LocalizationProvider.Instance.SetLanguage(_settings.UiLanguage);
@@ -211,6 +213,19 @@ public sealed class MainViewModel : ViewModelBase
             if (_settings.VerifyHashSidecar != value)
             {
                 _settings.VerifyHashSidecar = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public bool EnableAdvisoryChecks
+    {
+        get => _settings.EnableAdvisoryChecks;
+        set
+        {
+            if (_settings.EnableAdvisoryChecks != value)
+            {
+                _settings.EnableAdvisoryChecks = value;
                 OnPropertyChanged();
             }
         }
@@ -399,6 +414,11 @@ public sealed class MainViewModel : ViewModelBase
         {
             var logProgress = new Progress<string>(Log);
             var infos = await _github.DiscoverAsync(_settings, logProgress);
+            if (_settings.EnableAdvisoryChecks)
+            {
+                StatusText = "Checking open-source advisories...";
+                await _osv.EnrichAsync(infos, logProgress);
+            }
             // Re-read installed.json so cards built below see the freshest install state
             // (e.g. an out-of-band install that ran while the app was open).
             await _installer.ReloadAsync(logProgress);
@@ -721,6 +741,7 @@ public sealed class MainViewModel : ViewModelBase
             _settings.SearchTopic = string.IsNullOrWhiteSpace(document.SearchTopic) ? "windows-app" : document.SearchTopic.Trim();
             _settings.SearchPublisherPins = PublisherPinParser.Sanitize(document.SearchPublisherPins);
             _settings.VerifyHashSidecar = document.VerifyHashSidecar;
+            _settings.EnableAdvisoryChecks = document.EnableAdvisoryChecks;
             _settings.InstallRootOverride = string.IsNullOrWhiteSpace(document.InstallRootOverride)
                 ? null
                 : document.InstallRootOverride.Trim();
@@ -752,6 +773,7 @@ public sealed class MainViewModel : ViewModelBase
             _searchPublisherPinsInput = PublisherPinParser.Format(_settings.SearchPublisherPins);
             OnPropertyChanged(nameof(SearchPublisherPinsInput));
             OnPropertyChanged(nameof(VerifyHashSidecar));
+            OnPropertyChanged(nameof(EnableAdvisoryChecks));
             OnPropertyChanged(nameof(InstallRootOverride));
             SettingsSaved?.Invoke(this, EventArgs.Empty);
             ApplyHiddenRepoState();

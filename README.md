@@ -53,6 +53,7 @@ LocalDesktopStore knows about all of those. It picks the right asset off each re
 - **SHA-256 sidecar verification** — refuses to install if `<asset>.sha256.txt` is present and doesn't match (matches the LocalChromeStore release convention)
 - **Verified download cache** — sidecar-verified assets are cached under `downloads\cache\<owner>\<repo>\<version>\<sha256>\`; matching updates restore locally after re-checking the blob hash
 - **Authenticode publisher verification** — MSI/EXE installers must be trusted by Windows before they run; the signer thumbprint is pinned per installed repo and publisher changes require explicit approval. MSIX certificates are validated by Windows Appx deployment, and LDS never imports them
+- **Opt-in OSV advisory checks** — refresh can query OSV.dev for open advisories per GitHub release repository and show the informational count on each card; checks are off by default and never block discovery or installation
 - **Search and filter** — by name, repo, or description; toggle to show only installed
 - **Topic filter (optional)** — restrict discovery to repos tagged with a topic (default `windows-app`)
 - **Multi-owner settings editor** — add/remove extra GitHub users or organizations without editing JSON
@@ -134,8 +135,9 @@ dotnet build src/LocalDesktopStore/LocalDesktopStore.csproj -c Release
 9. *(Optional)* Choose **System default**, **English**, or **Español** under Appearance; the selected culture applies immediately and persists when you save settings
 10. *(Optional)* Enable **Check for updates in the background** and choose an interval from 1–24 hours; checks run as your signed-in user, notify through the tray, and never install automatically
 11. Leave **Verify SHA-256 sidecar** on if your releases ship `.sha256.txt` sidecars (LocalChromeStore / LocalDesktopStore convention)
-12. Keep your MSI/EXE release assets Authenticode-signed and your MSIX publisher certificate trusted by Windows; LocalDesktopStore refuses unsigned or untrusted packages and never imports certificates automatically
-13. Click **Save and refresh**
+12. *(Optional)* Enable **Check open-source advisories** to query OSV.dev during refresh; results are informational and never block installs
+13. Keep your MSI/EXE release assets Authenticode-signed and your MSIX publisher certificate trusted by Windows; LocalDesktopStore refuses unsigned or untrusted packages and never imports certificates automatically
+14. Click **Save and refresh**
 
 Select one or more card checkboxes to reveal **Install selected**, **Update selected**, and **Uninstall selected**. Bulk work is deliberately sequential so installer output and failures remain attributable to one app at a time.
 
@@ -218,6 +220,7 @@ WPF on .NET 9 — MVVM, no third-party MVVM toolkit. The whole app is ~1,800 lin
   - `DownloadCacheService` — sidecar-keyed verified whole-asset cache with corrupt-entry fallback
   - `UninstallRegistry` — reads `HKLM`, `HKLM\WOW6432Node`, `HKCU` uninstall keys
   - `HashVerifier` — `<asset>.sha256.txt` sidecar verification
+  - `OsvService` — opt-in, bounded OSV.dev advisory queries for GitHub release repositories
   - `ShortcutService` — creates Start Menu `.lnk` files via `IShellLink` COM
   - `SettingsService` — JSON persistence
   - `ScheduledUpdateService` / `ScheduledTaskRegistrar` — opt-in polling, least-privilege Task Scheduler registration, and headless checks

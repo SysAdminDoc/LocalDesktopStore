@@ -14,6 +14,7 @@ public sealed class AppSettings
     public List<string> ExtraOwners { get; set; } = new();
     public List<string> HiddenRepos { get; set; } = new();
     public bool VerifyHashSidecar { get; set; } = true;
+    public bool EnableAdvisoryChecks { get; set; }
     public string? InstallRootOverride { get; set; }
     public bool UseLightTheme { get; set; }
     public bool UseSystemAccent { get; set; }

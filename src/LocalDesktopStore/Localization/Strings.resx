@@ -82,6 +82,9 @@
   <data name="Settings_VerifySidecar" xml:space="preserve"><value>Verify SHA-256 sidecar</value></data>
   <data name="Settings_VerifySidecarAutomation" xml:space="preserve"><value>Verify SHA-256 sidecar before installation</value></data>
   <data name="Settings_VerifyHelp" xml:space="preserve"><value>When enabled, every install verifies the asset against its `.sha256.txt` sidecar before invoking the installer. Refuses to install on mismatch.</value></data>
+  <data name="Settings_AdvisoryChecks" xml:space="preserve"><value>Check open-source advisories</value></data>
+  <data name="Settings_AdvisoryChecksAutomation" xml:space="preserve"><value>Check open-source advisories during refresh</value></data>
+  <data name="Settings_AdvisoryChecksHelp" xml:space="preserve"><value>When enabled, refresh asks OSV.dev for open advisories for each GitHub release repository. Results are informational and never block discovery or installation.</value></data>
   <data name="Settings_SearchPinsLabel" xml:space="preserve"><value>Search-discovery publisher pins</value></data>
   <data name="Settings_SearchPinsAutomation" xml:space="preserve"><value>Search discovery publisher pins</value></data>
   <data name="Settings_SearchPinsTooltip" xml:space="preserve"><value>One per line: owner/repo=40-character Authenticode SHA-1 thumbprint.</value></data>
@@ -111,6 +114,9 @@
   <data name="Footer_Version" xml:space="preserve"><value>LocalDesktopStore v0.2.1</value></data>
   <data name="MainWindow_Badge" xml:space="preserve"><value>LDS</value></data>
   <data name="Card_Badge" xml:space="preserve"><value>APP</value></data>
+  <data name="Card_AdvisoriesPrefix" xml:space="preserve"><value>Open advisories: </value></data>
+  <data name="Card_AdvisoriesUnavailable" xml:space="preserve"><value>Advisories unavailable</value></data>
+  <data name="Card_AdvisoriesTooltip" xml:space="preserve"><value>Informational OSV.dev result; it never blocks installation.</value></data>
   <data name="Card_Export" xml:space="preserve"><value>Export</value></data>
   <data name="Card_ExportAutomation" xml:space="preserve"><value>Export WinGet manifest for this app</value></data>
   <data name="Card_ExportTooltip" xml:space="preserve"><value>Download the release asset, calculate its SHA-256, and write a v1.6 WinGet manifest.</value></data>

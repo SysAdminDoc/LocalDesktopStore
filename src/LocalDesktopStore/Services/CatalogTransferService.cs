@@ -18,6 +18,7 @@ public sealed class CatalogTransferDocument
     public string SearchTopic { get; set; } = "windows-app";
     public Dictionary<string, string> SearchPublisherPins { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     public bool VerifyHashSidecar { get; set; } = true;
+    public bool EnableAdvisoryChecks { get; set; }
     public string? InstallRootOverride { get; set; }
     public List<CatalogAppEntry> Apps { get; set; } = new();
 }
@@ -78,6 +79,7 @@ public static class CatalogTransferService
             SearchTopic = string.IsNullOrWhiteSpace(settings.SearchTopic) ? "windows-app" : settings.SearchTopic.Trim(),
             SearchPublisherPins = PublisherPinParser.Sanitize(settings.SearchPublisherPins),
             VerifyHashSidecar = settings.VerifyHashSidecar,
+            EnableAdvisoryChecks = settings.EnableAdvisoryChecks,
             InstallRootOverride = settings.InstallRootOverride,
             Apps = keys.Select(key => CreateEntry(key, hidden, pins, preferences, installedByKey)).ToList()
         };

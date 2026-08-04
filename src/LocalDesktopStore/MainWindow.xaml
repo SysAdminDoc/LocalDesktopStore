@@ -435,6 +435,15 @@
                                    Margin="0,8,0,0"
                                     Text="{loc:Loc Key=Settings_VerifyHelp}" />
 
+                        <CheckBox Content="{loc:Loc Key=Settings_AdvisoryChecks}"
+                                  IsChecked="{Binding EnableAdvisoryChecks}"
+                                  AutomationProperties.Name="{loc:Loc Key=Settings_AdvisoryChecksAutomation}"
+                                  Margin="0,16,0,0" />
+                        <TextBlock Style="{StaticResource MuteText}"
+                                   TextWrapping="Wrap"
+                                   Margin="0,8,0,0"
+                                   Text="{loc:Loc Key=Settings_AdvisoryChecksHelp}" />
+
                         <TextBlock Text="{loc:Loc Key=Settings_SearchPinsLabel}"
                                    Style="{StaticResource InputLabel}"
                                    Margin="0,16,0,5" />

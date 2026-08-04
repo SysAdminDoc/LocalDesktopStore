@@ -498,6 +498,7 @@ public static class CommandLineHost
             TopicFilter = source.TopicFilter,
             HiddenRepos = new List<string>(source.HiddenRepos),
             VerifyHashSidecar = source.VerifyHashSidecar,
+            EnableAdvisoryChecks = source.EnableAdvisoryChecks,
             InstallRootOverride = source.InstallRootOverride,
             UseLightTheme = source.UseLightTheme,
             UseSystemAccent = source.UseSystemAccent,

@@ -174,6 +174,10 @@ public sealed class AppCardViewModel : ViewModelBase
     public string InstalledDetail => IsInstalled
         ? $"Local v{_installed!.Version} • {_installed.Kind.DisplayName()}"
         : "Not installed locally";
+    public bool HasAdvisoryResult => Info.AdvisoryCount.HasValue;
+    public bool AdvisoryCheckUnavailable => !HasAdvisoryResult
+        && !string.IsNullOrWhiteSpace(Info.AdvisoryCheckError);
+    public int AdvisoryCount => Info.AdvisoryCount ?? 0;
 
     public BitmapImage? Icon
     {

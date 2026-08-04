@@ -135,6 +135,7 @@ public sealed class SettingsService
             ExtraOwners = new List<string>(settings.ExtraOwners ?? new()),
             HiddenRepos = new List<string>(settings.HiddenRepos ?? new()),
             VerifyHashSidecar = settings.VerifyHashSidecar,
+            EnableAdvisoryChecks = settings.EnableAdvisoryChecks,
             InstallRootOverride = settings.InstallRootOverride,
             UseLightTheme = settings.UseLightTheme,
             UseSystemAccent = settings.UseSystemAccent,

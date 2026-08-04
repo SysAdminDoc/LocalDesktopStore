@@ -147,11 +147,22 @@
                                Foreground="{DynamicResource MauveBrush}" />
                 </Border>
 
-                <TextBlock Grid.Column="2"
-                           Text="{Binding InstalledDetail}"
-                           Style="{StaticResource MuteText}"
-                           VerticalAlignment="Center"
-                           TextTrimming="CharacterEllipsis" />
+                <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding InstalledDetail}"
+                               Style="{StaticResource MuteText}"
+                               TextTrimming="CharacterEllipsis" />
+                    <TextBlock Style="{StaticResource MuteText}"
+                               ToolTip="{loc:Loc Key=Card_AdvisoriesTooltip}"
+                               Visibility="{Binding HasAdvisoryResult, Converter={StaticResource BoolToVis}}">
+                        <Run Text="{loc:Loc Key=Card_AdvisoriesPrefix}" />
+                        <Run Text="{Binding AdvisoryCount}" />
+                    </TextBlock>
+                    <TextBlock Text="{loc:Loc Key=Card_AdvisoriesUnavailable}"
+                               Foreground="{DynamicResource YellowBrush}"
+                               Style="{StaticResource MuteText}"
+                               ToolTip="{loc:Loc Key=Card_AdvisoriesTooltip}"
+                               Visibility="{Binding AdvisoryCheckUnavailable, Converter={StaticResource BoolToVis}}" />
+                </StackPanel>
             </Grid>
 
             <TextBlock Grid.Row="2"
