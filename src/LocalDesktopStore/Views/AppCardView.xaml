@@ -2,6 +2,7 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:conv="clr-namespace:LocalDesktopStore.Converters"
+             xmlns:loc="clr-namespace:LocalDesktopStore.Localization"
              xmlns:vm="clr-namespace:LocalDesktopStore.ViewModels"
              d:DataContext="{d:DesignInstance vm:AppCardViewModel}"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -47,7 +48,7 @@
                                Stretch="Uniform"
                                Margin="7"
                                Visibility="{Binding Icon, Converter={StaticResource NullToVis}}" />
-                        <TextBlock Text="APP"
+                        <TextBlock Text="{loc:Loc Key=Card_Badge}"
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Center"
                                    FontSize="11"
@@ -75,24 +76,24 @@
                                Style="{StaticResource BadgeText}"
                                Foreground="{DynamicResource YellowBrush}"
                                VerticalAlignment="Center" />
-                    <Button Content="Export"
+                    <Button Content="{loc:Loc Key=Card_Export}"
                             Command="{Binding ExportWingetCommand}"
                             Style="{StaticResource LinkButton}"
-                            AutomationProperties.Name="Export WinGet manifest for this app"
-                            ToolTip="Download the release asset, calculate its SHA-256, and write a v1.6 WinGet manifest."
+                            AutomationProperties.Name="{loc:Loc Key=Card_ExportAutomation}"
+                            ToolTip="{loc:Loc Key=Card_ExportTooltip}"
                             Margin="8,-4,0,0" />
-                    <Button Content="Hide"
+                    <Button Content="{loc:Loc Key=Card_Hide}"
                             Command="{Binding HideCommand}"
                             Style="{StaticResource LinkButton}"
-                            AutomationProperties.Name="Hide this app"
-                            ToolTip="Hide this app from the catalog."
+                            AutomationProperties.Name="{loc:Loc Key=Card_HideAutomation}"
+                            ToolTip="{loc:Loc Key=Card_HideTooltip}"
                             Margin="8,-4,0,0" />
                 </StackPanel>
 
                 <CheckBox Grid.Column="0"
                           IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                          AutomationProperties.Name="Select this app for bulk operations"
-                          ToolTip="Select this app for bulk install, update, or uninstall operations."
+                          AutomationProperties.Name="{loc:Loc Key=Card_SelectAutomation}"
+                          ToolTip="{loc:Loc Key=Card_SelectTooltip}"
                           HorizontalAlignment="Left"
                           VerticalAlignment="Top"
                           Margin="-6,-6,0,0"
@@ -210,11 +211,11 @@
                            TextWrapping="Wrap"
                            Margin="0,0,8,0" />
                 <Button Grid.Column="1"
-                        Content="View crash log"
+                        Content="{loc:Loc Key=Card_ViewCrash}"
                         Style="{StaticResource LinkButton}"
                         Command="{Binding OpenCrashLogCommand}"
-                        AutomationProperties.Name="View crash log for this app"
-                        ToolTip="Open LocalDesktopStore's install and crash logs folder." />
+                        AutomationProperties.Name="{loc:Loc Key=Card_ViewCrashAutomation}"
+                        ToolTip="{loc:Loc Key=Card_ViewCrashTooltip}" />
             </Grid>
 
             <Grid Grid.Row="6"
@@ -223,29 +224,29 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <TextBlock Text="Custom installer arguments (optional)"
+                <TextBlock Text="{loc:Loc Key=Card_CustomArgsLabel}"
                            Style="{StaticResource MuteText}"
-                           AutomationProperties.Name="Custom installer arguments label" />
+                           AutomationProperties.Name="{loc:Loc Key=Card_CustomArgsLabelAutomation}" />
                 <TextBox Grid.Row="1"
                          Text="{Binding CustomInstallerArguments, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
                          IsEnabled="{Binding CanCustomizeInstallerArguments}"
                          MaxLength="4096"
-                         AutomationProperties.Name="Custom installer arguments"
-                         ToolTip="Optional switches appended to the safe defaults for MSI, Inno, NSIS, or generic EXE installers. Use Windows command-line quoting; values are passed as argument tokens, never evaluated by a shell."
+                         AutomationProperties.Name="{loc:Loc Key=Card_CustomArgsAutomation}"
+                         ToolTip="{loc:Loc Key=Card_CustomArgsTooltip}"
                          Margin="0,4,0,0" />
             </Grid>
 
             <StackPanel Grid.Row="7"
                         Orientation="Horizontal"
                         Margin="0,0,0,8">
-                <CheckBox Content="Run after install"
+                <CheckBox Content="{loc:Loc Key=Card_RunAfter}"
                           IsChecked="{Binding RunAfterInstall, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                          AutomationProperties.Name="Run this app after installation"
-                          ToolTip="Launch this app automatically after a successful install or update." />
-                <CheckBox Content="Pin after install"
+                          AutomationProperties.Name="{loc:Loc Key=Card_RunAfterAutomation}"
+                          ToolTip="{loc:Loc Key=Card_RunAfterTooltip}" />
+                <CheckBox Content="{loc:Loc Key=Card_PinAfter}"
                           IsChecked="{Binding PinToTaskbar, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                          AutomationProperties.Name="Pin this app to the taskbar after installation"
-                          ToolTip="Ask Windows to pin the app's launch target to the taskbar after a successful install or update."
+                          AutomationProperties.Name="{loc:Loc Key=Card_PinAfterAutomation}"
+                          ToolTip="{loc:Loc Key=Card_PinAfterTooltip}"
                           Margin="16,0,0,0" />
             </StackPanel>
 
@@ -263,37 +264,37 @@
                         Content="{Binding InstallButtonLabel}"
                         Style="{StaticResource AccentButton}"
                         Command="{Binding InstallCommand}"
-                        AutomationProperties.Name="Install or update this app"
+                        AutomationProperties.Name="{loc:Loc Key=Card_InstallAutomation}"
                         IsEnabled="{Binding CanInstall}"
                         MinWidth="96"
                         Margin="0,0,6,0" />
                 <Button Grid.Column="2"
-                        Content="Run"
+                        Content="{loc:Loc Key=Card_Run}"
                         Style="{StaticResource SuccessButton}"
                         Command="{Binding RunCommand}"
-                        AutomationProperties.Name="Run this app"
+                        AutomationProperties.Name="{loc:Loc Key=Card_RunAutomation}"
                         IsEnabled="{Binding CanRun}"
                         Visibility="{Binding IsInstalled, Converter={StaticResource BoolToVis}}"
                         Margin="0,0,6,0" />
                 <Button Grid.Column="3"
-                        Content="Uninstall"
+                        Content="{loc:Loc Key=Card_Uninstall}"
                         Style="{StaticResource DangerButton}"
                         Command="{Binding UninstallCommand}"
-                        AutomationProperties.Name="Uninstall this app"
+                        AutomationProperties.Name="{loc:Loc Key=Card_UninstallAutomation}"
                         Visibility="{Binding IsInstalled, Converter={StaticResource BoolToVis}}"
                         Margin="0,0,6,0" />
                 <Button Grid.Column="4"
-                        Content="Folder"
+                        Content="{loc:Loc Key=Card_Folder}"
                         Command="{Binding OpenInstallDirCommand}"
-                        AutomationProperties.Name="Open this app's install folder"
+                        AutomationProperties.Name="{loc:Loc Key=Card_FolderAutomation}"
                         IsEnabled="{Binding CanOpenDir}"
                         Visibility="{Binding IsInstalled, Converter={StaticResource BoolToVis}}"
                         Margin="0,0,6,0" />
                 <Button Grid.Column="5"
-                        Content="Repo"
+                        Content="{loc:Loc Key=Card_Repo}"
                         Style="{StaticResource LinkButton}"
                         Command="{Binding OpenRepoCommand}"
-                        AutomationProperties.Name="Open this app's repository" />
+                        AutomationProperties.Name="{loc:Loc Key=Card_RepoAutomation}" />
             </Grid>
         </Grid>
     </Border>

@@ -14,6 +14,7 @@ public sealed class AppSettings
     public string? InstallRootOverride { get; set; }
     public bool UseLightTheme { get; set; }
     public bool UseSystemAccent { get; set; }
+    public string UiLanguage { get; set; } = "en";
     public bool EnableScheduledUpdateChecks { get; set; }
     public int ScheduledUpdateIntervalHours { get; set; } = 6;
     public Dictionary<string, string> CatalogVersionPins { get; set; } = new(StringComparer.OrdinalIgnoreCase);

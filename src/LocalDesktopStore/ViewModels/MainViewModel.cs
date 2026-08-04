@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 using Microsoft.Win32;
+using LocalDesktopStore.Localization;
 using LocalDesktopStore.Models;
 using LocalDesktopStore.Services;
 
@@ -61,6 +62,7 @@ public sealed class MainViewModel : ViewModelBase
         _github = new GitHubService();
         _installer = new InstallService(_settingsService, _github);
         _settings = _settingsService.Load();
+        LocalizationProvider.Instance.SetLanguage(_settings.UiLanguage);
         ThemeService.Apply(_settings);
         _logSink = new DispatcherLogSink(LogLines);
 
@@ -270,6 +272,28 @@ public sealed class MainViewModel : ViewModelBase
             {
                 _settings.UseSystemAccent = value;
                 ThemeService.Apply(_settings);
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public IReadOnlyList<LanguageChoice> LanguageOptions => LocalizationProvider.LanguageOptions;
+
+    public string UiLanguage
+    {
+        get => _settings.UiLanguage;
+        set
+        {
+            var normalized = value?.Trim().ToLowerInvariant() switch
+            {
+                "system" => "system",
+                "es" => "es",
+                _ => "en"
+            };
+            if (_settings.UiLanguage != normalized)
+            {
+                _settings.UiLanguage = normalized;
+                LocalizationProvider.Instance.SetLanguage(normalized);
                 OnPropertyChanged();
             }
         }
@@ -532,6 +556,7 @@ public sealed class MainViewModel : ViewModelBase
         _settings.GitHubUser = user;
         _settings.GitHubToken = string.IsNullOrWhiteSpace(GitHubTokenInput) ? null : GitHubTokenInput.Trim();
         _settings.TopicFilter = topic;
+        _settings.UiLanguage = UiLanguage;
         _settings.SearchTopic = SearchTopic.Trim();
         _settings.SearchPublisherPins = searchPublisherPins;
         _searchPublisherPinsInput = PublisherPinParser.Format(_settings.SearchPublisherPins);
@@ -678,6 +703,13 @@ public sealed class MainViewModel : ViewModelBase
                 .ToList();
             _settings.UseTopicFilter = document.UseTopicFilter;
             _settings.TopicFilter = document.TopicFilter.Trim();
+            _settings.UiLanguage = document.UiLanguage?.Trim().ToLowerInvariant() switch
+            {
+                "system" => "system",
+                "es" => "es",
+                _ => "en"
+            };
+            LocalizationProvider.Instance.SetLanguage(_settings.UiLanguage);
             _settings.EnableGitHubSearchDiscovery = document.EnableGitHubSearchDiscovery;
             _settings.SearchTopic = string.IsNullOrWhiteSpace(document.SearchTopic) ? "windows-app" : document.SearchTopic.Trim();
             _settings.SearchPublisherPins = PublisherPinParser.Sanitize(document.SearchPublisherPins);
@@ -707,6 +739,7 @@ public sealed class MainViewModel : ViewModelBase
             OnPropertyChanged(nameof(GitHubUserInput));
             OnPropertyChanged(nameof(UseTopicFilter));
             OnPropertyChanged(nameof(TopicFilter));
+            OnPropertyChanged(nameof(UiLanguage));
             OnPropertyChanged(nameof(EnableGitHubSearchDiscovery));
             OnPropertyChanged(nameof(SearchTopic));
             _searchPublisherPinsInput = PublisherPinParser.Format(_settings.SearchPublisherPins);

@@ -61,6 +61,7 @@ LocalDesktopStore knows about all of those. It picks the right asset off each re
 - **Search publisher pins** — GitHub Search results require an explicit `owner/repo=SHA-1 thumbprint` pin and a matching trusted Authenticode MSI/EXE signer before installation; archive and package handoffs remain curated-only
 - **WinGet manifest export** — export a v1.6 singleton manifest per card, with a locally calculated installer hash and the appropriate MSI / Inno / NSIS / EXE / portable ZIP metadata
 - **Catppuccin Mocha / Latte themes** — switch palettes at runtime, with an optional Windows system accent
+- **Runtime localization** — English is the default, with System default and Español choices in Settings; translations live in `Localization/Strings*.resx` and update the WPF surface immediately
 - **Scheduled background update checks** — optionally poll every 1–24 hours, keep a least-privilege interactive Task Scheduler entry, and show native tray notifications without installing automatically
 - **Bulk selection operations** — select cards and run install, update, or uninstall sequentially with one aggregate status banner
 - **Catalog transfer** — File → Export/Import round-trips owners, hidden per-app overrides, install preferences, and version pins in a `.lds.json` file without exporting the GitHub PAT
@@ -102,10 +103,11 @@ dotnet build src/LocalDesktopStore/LocalDesktopStore.csproj -c Release
 6. *(Optional)* Enable **Filter by topic** if you want to limit to repos tagged with `windows-app`
 7. *(Optional)* Enable **GitHub Search discovery**, choose its topic (default `windows-app`), and add one signer thumbprint per search-discovered `owner/repo` as `owner/repo=THUMBPRINT`
 8. *(Optional)* Switch to the **Catppuccin Latte light theme** or enable the **Windows system accent** under Appearance; both apply immediately and persist when you save settings
-9. *(Optional)* Enable **Check for updates in the background** and choose an interval from 1–24 hours; checks run as your signed-in user, notify through the tray, and never install automatically
-10. Leave **Verify SHA-256 sidecar** on if your releases ship `.sha256.txt` sidecars (LocalChromeStore / LocalDesktopStore convention)
-11. Keep your MSI/EXE release assets Authenticode-signed and your MSIX publisher certificate trusted by Windows; LocalDesktopStore refuses unsigned or untrusted packages and never imports certificates automatically
-12. Click **Save and refresh**
+9. *(Optional)* Choose **System default**, **English**, or **Español** under Appearance; the selected culture applies immediately and persists when you save settings
+10. *(Optional)* Enable **Check for updates in the background** and choose an interval from 1–24 hours; checks run as your signed-in user, notify through the tray, and never install automatically
+11. Leave **Verify SHA-256 sidecar** on if your releases ship `.sha256.txt` sidecars (LocalChromeStore / LocalDesktopStore convention)
+12. Keep your MSI/EXE release assets Authenticode-signed and your MSIX publisher certificate trusted by Windows; LocalDesktopStore refuses unsigned or untrusted packages and never imports certificates automatically
+13. Click **Save and refresh**
 
 Select one or more card checkboxes to reveal **Install selected**, **Update selected**, and **Uninstall selected**. Bulk work is deliberately sequential so installer output and failures remain attributable to one app at a time.
 
@@ -192,6 +194,7 @@ WPF on .NET 9 — MVVM, no third-party MVVM toolkit. The whole app is ~1,800 lin
   - `ScheduledUpdateService` / `ScheduledTaskRegistrar` — opt-in polling, least-privilege Task Scheduler registration, and headless checks
   - `TrayIconService` — native `Shell_NotifyIcon` update notifications
   - `CatalogTransferService` — validated, token-free `.lds.json` import/export
+- `Localization/` — neutral English `Strings.resx`, community `Strings.{lang}.resx` resources, and the live WPF `LocExtension` provider
 - `ViewModels/` — `MainViewModel` orchestrates everything; `AppCardViewModel` per-card state
 - `Views/` — `AppCardView` user control + the main window
 - `Themes/` — Catppuccin Mocha and Latte resource dictionaries plus the shared runtime-switchable control styles

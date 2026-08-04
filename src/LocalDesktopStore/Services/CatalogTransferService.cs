@@ -13,6 +13,7 @@ public sealed class CatalogTransferDocument
     public List<string> ExtraOwners { get; set; } = new();
     public bool UseTopicFilter { get; set; }
     public string TopicFilter { get; set; } = "windows-app";
+    public string UiLanguage { get; set; } = "en";
     public bool EnableGitHubSearchDiscovery { get; set; }
     public string SearchTopic { get; set; } = "windows-app";
     public Dictionary<string, string> SearchPublisherPins { get; set; } = new(StringComparer.OrdinalIgnoreCase);
@@ -72,6 +73,7 @@ public static class CatalogTransferService
             ExtraOwners = (settings.ExtraOwners ?? new()).Where(owner => !string.IsNullOrWhiteSpace(owner)).Select(owner => owner.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(owner => owner, StringComparer.OrdinalIgnoreCase).ToList(),
             UseTopicFilter = settings.UseTopicFilter,
             TopicFilter = settings.TopicFilter?.Trim() ?? string.Empty,
+            UiLanguage = string.IsNullOrWhiteSpace(settings.UiLanguage) ? "en" : settings.UiLanguage.Trim(),
             EnableGitHubSearchDiscovery = settings.EnableGitHubSearchDiscovery,
             SearchTopic = string.IsNullOrWhiteSpace(settings.SearchTopic) ? "windows-app" : settings.SearchTopic.Trim(),
             SearchPublisherPins = PublisherPinParser.Sanitize(settings.SearchPublisherPins),

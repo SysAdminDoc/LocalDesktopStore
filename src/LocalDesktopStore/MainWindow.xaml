@@ -1,10 +1,11 @@
 <Window x:Class="LocalDesktopStore.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:LocalDesktopStore.Localization"
         xmlns:vm="clr-namespace:LocalDesktopStore.ViewModels"
         xmlns:views="clr-namespace:LocalDesktopStore.Views"
         xmlns:conv="clr-namespace:LocalDesktopStore.Converters"
-        Title="LocalDesktopStore" Height="820" Width="1280"
+        Title="{loc:Loc Key=MainWindow_Title}" Height="820" Width="1280"
         MinWidth="920" MinHeight="640"
         WindowStartupLocation="CenterScreen">
     <Window.DataContext>
@@ -46,7 +47,7 @@
                         BorderBrush="{DynamicResource MauveBrush}"
                         BorderThickness="1"
                         Margin="0,0,14,0">
-                    <TextBlock Text="LDS"
+                    <TextBlock Text="{loc:Loc Key=MainWindow_Badge}"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Center"
                                FontWeight="SemiBold"
@@ -54,29 +55,29 @@
                 </Border>
 
                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                    <TextBlock Text="LocalDesktopStore" Style="{StaticResource HeadingText}" />
-                    <TextBlock Text="A private catalog for Windows desktop apps built from your GitHub releases."
+                    <TextBlock Text="{loc:Loc Key=MainWindow_Title}" Style="{StaticResource HeadingText}" />
+                    <TextBlock Text="{loc:Loc Key=MainWindow_Tagline}"
                                Style="{StaticResource SubtleText}" />
                     <TextBlock Style="{StaticResource MuteText}" Margin="0,3,0,0">
                         <Run Text="{Binding AvailableCount, Mode=OneWay}" />
-                        <Run Text=" available" />
-                        <Run Text=" / " Foreground="{DynamicResource MuteBrush}" />
+                        <Run Text="{loc:Loc Key=MainWindow_AvailableSuffix}" />
+                        <Run Text="{loc:Loc Key=MainWindow_Separator}" Foreground="{DynamicResource MuteBrush}" />
                         <Run Text="{Binding InstalledCount, Mode=OneWay}" Foreground="{DynamicResource GreenBrush}" />
-                        <Run Text=" installed" />
+                        <Run Text="{loc:Loc Key=MainWindow_InstalledSuffix}" />
                     </TextBlock>
                 </StackPanel>
 
                 <Menu Grid.Column="2"
                       VerticalAlignment="Top"
                       Margin="16,0,0,0">
-                    <MenuItem Header="_File"
-                              AutomationProperties.Name="File menu">
-                        <MenuItem Header="_Export catalog"
+                    <MenuItem Header="{loc:Loc Key=MainWindow_FileMenu}"
+                              AutomationProperties.Name="{loc:Loc Key=MainWindow_FileMenuAutomation}">
+                        <MenuItem Header="{loc:Loc Key=MainWindow_ExportCatalog}"
                                   Command="{Binding ExportCatalogCommand}"
-                                  AutomationProperties.Name="Export catalog" />
-                        <MenuItem Header="_Import catalog"
+                                  AutomationProperties.Name="{loc:Loc Key=MainWindow_ExportCatalogAutomation}" />
+                        <MenuItem Header="{loc:Loc Key=MainWindow_ImportCatalog}"
                                   Command="{Binding ImportCatalogCommand}"
-                                  AutomationProperties.Name="Import catalog" />
+                                  AutomationProperties.Name="{loc:Loc Key=MainWindow_ImportCatalogAutomation}" />
                     </MenuItem>
                 </Menu>
 
@@ -110,8 +111,8 @@
                     <Grid Grid.Column="0" Width="470" MinWidth="320">
                         <TextBox x:Name="SearchBox"
                                  Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                                 AutomationProperties.Name="Search apps, repositories, or descriptions" />
-                        <TextBlock Text="Search apps, repositories, or descriptions"
+                                 AutomationProperties.Name="{loc:Loc Key=MainWindow_SearchAutomation}" />
+                        <TextBlock Text="{loc:Loc Key=MainWindow_SearchAutomation}"
                                    Style="{StaticResource MuteText}"
                                    Margin="12,0,0,0"
                                    VerticalAlignment="Center"
@@ -120,37 +121,37 @@
                     </Grid>
 
                     <CheckBox Grid.Column="2"
-                              Content="Installed only"
+                              Content="{loc:Loc Key=MainWindow_InstalledOnly}"
                               IsChecked="{Binding ShowInstalledOnly}"
-                              AutomationProperties.Name="Show installed apps only"
+                              AutomationProperties.Name="{loc:Loc Key=MainWindow_InstalledOnlyAutomation}"
                               VerticalAlignment="Center"
                               Margin="18,0" />
 
                     <Button Grid.Column="4"
-                            Content="Install folder"
+                            Content="{loc:Loc Key=MainWindow_InstallFolder}"
                             Command="{Binding OpenInstallDirCommand}"
-                            AutomationProperties.Name="Open install folder"
+                            AutomationProperties.Name="{loc:Loc Key=MainWindow_InstallFolderAutomation}"
                             Margin="0,0,8,0" />
 
                     <Button Grid.Column="5"
                             Content="{Binding UpdateAllButtonLabel}"
                             Command="{Binding UpdateAllCommand}"
-                            AutomationProperties.Name="Update all outdated apps"
-                            ToolTip="Sequentially update every installed app whose remote release is newer than the local pin."
+                            AutomationProperties.Name="{loc:Loc Key=MainWindow_UpdateAllAutomation}"
+                            ToolTip="{loc:Loc Key=MainWindow_UpdateAllTooltip}"
                             Visibility="{Binding HasOutdated, Converter={StaticResource BoolToVis}}"
                             Margin="0,0,8,0" />
 
                     <Button Grid.Column="6"
                             Content="{Binding RefreshButtonLabel}"
                             Command="{Binding RefreshCommand}"
-                            AutomationProperties.Name="Refresh catalog"
+                             AutomationProperties.Name="{loc:Loc Key=MainWindow_RefreshAutomation}"
                             Style="{StaticResource AccentButton}"
                             Margin="0,0,8,0" />
 
                     <Button Grid.Column="7"
-                            Content="Settings"
+                            Content="{loc:Loc Key=MainWindow_Settings}"
                             x:Name="SettingsToggleButton"
-                            AutomationProperties.Name="Show or hide settings"
+                            AutomationProperties.Name="{loc:Loc Key=MainWindow_SettingsAutomation}"
                             Click="ToggleSettings_Click" />
                 </Grid>
 
@@ -169,24 +170,24 @@
                                    Style="{StaticResource SectionTitle}"
                                    VerticalAlignment="Center"
                                    Margin="0,0,14,0" />
-                        <Button Content="Install selected"
+                        <Button Content="{loc:Loc Key=MainWindow_InstallSelected}"
                                 Command="{Binding InstallSelectedCommand}"
                                 Style="{StaticResource AccentButton}"
-                                AutomationProperties.Name="Install selected apps"
+                                AutomationProperties.Name="{loc:Loc Key=MainWindow_InstallSelectedAutomation}"
                                 Margin="0,0,8,0" />
-                        <Button Content="Update selected"
+                        <Button Content="{loc:Loc Key=MainWindow_UpdateSelected}"
                                 Command="{Binding UpdateSelectedCommand}"
-                                AutomationProperties.Name="Update selected apps"
+                                AutomationProperties.Name="{loc:Loc Key=MainWindow_UpdateSelectedAutomation}"
                                 Margin="0,0,8,0" />
-                        <Button Content="Uninstall selected"
+                        <Button Content="{loc:Loc Key=MainWindow_UninstallSelected}"
                                 Command="{Binding UninstallSelectedCommand}"
                                 Style="{StaticResource DangerButton}"
-                                AutomationProperties.Name="Uninstall selected apps"
+                                AutomationProperties.Name="{loc:Loc Key=MainWindow_UninstallSelectedAutomation}"
                                 Margin="0,0,8,0" />
-                        <Button Content="Clear selection"
+                        <Button Content="{loc:Loc Key=MainWindow_ClearSelection}"
                                 Command="{Binding ClearSelectionCommand}"
                                 Style="{StaticResource LinkButton}"
-                                AutomationProperties.Name="Clear selected apps" />
+                                AutomationProperties.Name="{loc:Loc Key=MainWindow_ClearSelectionAutomation}" />
                     </StackPanel>
                 </Border>
             </Grid>
@@ -214,14 +215,14 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0">
-                        <TextBlock Text="Discovery settings" Style="{StaticResource SectionTitle}" />
-                        <TextBlock Text="Configure the curated GitHub source, optional search discovery, hash verification, and rate-limit token."
+                        <TextBlock Text="{loc:Loc Key=Settings_Title}" Style="{StaticResource SectionTitle}" />
+                        <TextBlock Text="{loc:Loc Key=Settings_Description}"
                                    Style="{StaticResource SubtleText}" />
                     </StackPanel>
                     <Button Grid.Column="1"
-                            Content="Close"
+                            Content="{loc:Loc Key=Settings_Close}"
                             Click="ToggleSettings_Click"
-                            AutomationProperties.Name="Close settings"
+                            AutomationProperties.Name="{loc:Loc Key=Settings_CloseAutomation}"
                             Style="{StaticResource LinkButton}"
                             VerticalAlignment="Top" />
                 </Grid>
@@ -234,12 +235,12 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0" Margin="0,0,16,0">
-                        <TextBlock Text="GitHub user or organization" Style="{StaticResource InputLabel}" />
+                        <TextBlock Text="{loc:Loc Key=Settings_GitHubUserLabel}" Style="{StaticResource InputLabel}" />
                         <Grid>
                             <TextBox x:Name="GitHubUserBox"
                                      Text="{Binding GitHubUserInput, UpdateSourceTrigger=PropertyChanged}"
-                                     AutomationProperties.Name="GitHub user or organization" />
-                            <TextBlock Text="example: SysAdminDoc"
+                                     AutomationProperties.Name="{loc:Loc Key=Settings_GitHubUserLabel}" />
+                            <TextBlock Text="{loc:Loc Key=Settings_GitHubUserPlaceholder}"
                                        Style="{StaticResource MuteText}"
                                        Margin="12,0,0,0"
                                        VerticalAlignment="Center"
@@ -247,25 +248,25 @@
                                        Visibility="{Binding Text, ElementName=GitHubUserBox, Converter={StaticResource EmptyStringToVis}}" />
                         </Grid>
 
-                        <TextBlock Text="GitHub personal access token"
+                        <TextBlock Text="{loc:Loc Key=Settings_GitHubTokenLabel}"
                                    Style="{StaticResource InputLabel}"
                                    Margin="0,12,0,5" />
                         <PasswordBox x:Name="GitHubTokenBox"
-                                     AutomationProperties.Name="GitHub personal access token"
+                                     AutomationProperties.Name="{loc:Loc Key=Settings_GitHubTokenAutomation}"
                                      PasswordChanged="GitHubTokenBox_PasswordChanged" />
-                        <TextBlock Text="Optional. Stored only in your local settings file; leave blank to use public GitHub rate limits."
+                        <TextBlock Text="{loc:Loc Key=Settings_GitHubTokenHelp}"
                                    Style="{StaticResource MuteText}"
                                    TextWrapping="Wrap"
                                    Margin="0,7,0,0" />
 
-                        <TextBlock Text="Install folder override"
+                        <TextBlock Text="{loc:Loc Key=Settings_InstallFolderLabel}"
                                    Style="{StaticResource InputLabel}"
                                    Margin="0,12,0,5" />
                         <Grid>
                             <TextBox x:Name="InstallRootBox"
                                      Text="{Binding InstallRootOverride, UpdateSourceTrigger=PropertyChanged}"
-                                     AutomationProperties.Name="Install folder override" />
-                            <TextBlock Text="(default %LOCALAPPDATA%\LocalDesktopStore\apps)"
+                                     AutomationProperties.Name="{loc:Loc Key=Settings_InstallFolderAutomation}" />
+                            <TextBlock Text="{loc:Loc Key=Settings_InstallFolderPlaceholder}"
                                        Style="{StaticResource MuteText}"
                                        Margin="12,0,0,0"
                                        VerticalAlignment="Center"
@@ -273,7 +274,7 @@
                                        Visibility="{Binding Text, ElementName=InstallRootBox, Converter={StaticResource EmptyStringToVis}}" />
                         </Grid>
 
-                        <TextBlock Text="Extra GitHub owners"
+                        <TextBlock Text="{loc:Loc Key=Settings_ExtraOwnersLabel}"
                                    Style="{StaticResource InputLabel}"
                                    Margin="0,12,0,5" />
                         <Grid>
@@ -284,8 +285,8 @@
                             <Grid Grid.Column="0">
                                 <TextBox x:Name="ExtraOwnerBox"
                                          Text="{Binding ExtraOwnerInput, UpdateSourceTrigger=PropertyChanged}"
-                                         AutomationProperties.Name="Extra GitHub owner" />
-                                <TextBlock Text="owner or organization"
+                                         AutomationProperties.Name="{loc:Loc Key=Settings_ExtraOwnerAutomation}" />
+                                <TextBlock Text="{loc:Loc Key=Settings_ExtraOwnerPlaceholder}"
                                            Style="{StaticResource MuteText}"
                                            Margin="12,0,0,0"
                                            VerticalAlignment="Center"
@@ -293,17 +294,17 @@
                                            Visibility="{Binding Text, ElementName=ExtraOwnerBox, Converter={StaticResource EmptyStringToVis}}" />
                             </Grid>
                             <Button Grid.Column="1"
-                                    Content="Add"
+                                    Content="{loc:Loc Key=Common_Add}"
                                     Command="{Binding AddExtraOwnerCommand}"
-                                    AutomationProperties.Name="Add extra GitHub owner"
+                                    AutomationProperties.Name="{loc:Loc Key=Settings_AddExtraOwnerAutomation}"
                                     Margin="8,0,0,0" />
                         </Grid>
-                        <TextBlock Text="No extra owners configured."
+                        <TextBlock Text="{loc:Loc Key=Settings_NoExtraOwners}"
                                    Style="{StaticResource MuteText}"
                                    Margin="0,7,0,0"
                                    Visibility="{Binding HasExtraOwners, Converter={StaticResource BoolToVis}, ConverterParameter=invert}" />
                         <ListBox ItemsSource="{Binding ExtraOwners}"
-                                 AutomationProperties.Name="Extra GitHub owners"
+                                 AutomationProperties.Name="{loc:Loc Key=Settings_ExtraOwnersAutomation}"
                                  MaxHeight="82"
                                  Margin="0,7,0,0"
                                  Visibility="{Binding HasExtraOwners, Converter={StaticResource BoolToVis}}">
@@ -311,10 +312,10 @@
                                 <DataTemplate>
                                     <DockPanel LastChildFill="True">
                                         <Button DockPanel.Dock="Right"
-                                                Content="Remove"
+                                                Content="{loc:Loc Key=Common_Remove}"
                                                 Command="{Binding DataContext.RemoveExtraOwnerCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                 CommandParameter="{Binding}"
-                                                AutomationProperties.Name="Remove extra GitHub owner"
+                                                AutomationProperties.Name="{loc:Loc Key=Settings_RemoveExtraOwnerAutomation}"
                                                 Style="{StaticResource LinkButton}"
                                                 Margin="8,0,0,0" />
                                         <TextBlock Text="{Binding}"
@@ -328,29 +329,37 @@
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" Margin="0,0,16,0">
-                        <TextBlock Text="Appearance" Style="{StaticResource InputLabel}" />
-                        <CheckBox Content="Use Catppuccin Latte light theme"
+                        <TextBlock Text="{loc:Loc Key=Settings_Appearance}" Style="{StaticResource InputLabel}" />
+                        <CheckBox Content="{loc:Loc Key=Settings_LightTheme}"
                                   IsChecked="{Binding UseLightTheme}"
-                                  AutomationProperties.Name="Use Catppuccin Latte light theme" />
+                                  AutomationProperties.Name="{loc:Loc Key=Settings_LightThemeAutomation}" />
                         <TextBlock Style="{StaticResource MuteText}"
                                    TextWrapping="Wrap"
                                    Margin="0,7,0,0"
-                                   Text="Switches the palette immediately; save settings to keep it for the next launch." />
-                        <CheckBox Content="Use Windows system accent"
+                                    Text="{loc:Loc Key=Settings_LightThemeHelp}" />
+                        <CheckBox Content="{loc:Loc Key=Settings_SystemAccent}"
                                   IsChecked="{Binding UseSystemAccent}"
-                                  AutomationProperties.Name="Use Windows system accent color"
+                                  AutomationProperties.Name="{loc:Loc Key=Settings_SystemAccentAutomation}"
                                   Margin="0,12,0,0" />
                         <TextBlock Style="{StaticResource MuteText}"
                                    TextWrapping="Wrap"
                                    Margin="0,7,0,0"
-                                   Text="Uses the Windows accent for the primary action and focus ring." />
-
-                        <TextBlock Text="Background updates"
+                                    Text="{loc:Loc Key=Settings_SystemAccentHelp}" />
+                        <TextBlock Text="{loc:Loc Key=Settings_LanguageLabel}"
                                    Style="{StaticResource InputLabel}"
                                    Margin="0,16,0,5" />
-                        <CheckBox Content="Check for updates in the background"
+                        <ComboBox ItemsSource="{Binding LanguageOptions}"
+                                  DisplayMemberPath="DisplayName"
+                                  SelectedValuePath="Code"
+                                  SelectedValue="{Binding UiLanguage, UpdateSourceTrigger=PropertyChanged}"
+                                  AutomationProperties.Name="{loc:Loc Key=Settings_LanguageAutomation}" />
+
+                        <TextBlock Text="{loc:Loc Key=Settings_BackgroundUpdates}"
+                                   Style="{StaticResource InputLabel}"
+                                   Margin="0,16,0,5" />
+                        <CheckBox Content="{loc:Loc Key=Settings_CheckBackground}"
                                   IsChecked="{Binding EnableScheduledUpdateChecks}"
-                                  AutomationProperties.Name="Check for updates in the background" />
+                                  AutomationProperties.Name="{loc:Loc Key=Settings_CheckBackgroundAutomation}" />
                         <Grid Margin="0,8,0,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -358,33 +367,33 @@
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0"
-                                       Text="Interval (hours)"
+                                       Text="{loc:Loc Key=Settings_IntervalHours}"
                                        Style="{StaticResource MuteText}"
                                        VerticalAlignment="Center"
                                        Margin="0,0,8,0" />
                             <TextBox Grid.Column="1"
                                      Text="{Binding ScheduledUpdateIntervalHours, UpdateSourceTrigger=PropertyChanged}"
-                                     AutomationProperties.Name="Background update interval in hours"
+                                      AutomationProperties.Name="{loc:Loc Key=Settings_IntervalAutomation}"
                                      IsEnabled="{Binding EnableScheduledUpdateChecks}"
                                      Padding="8,5"
                                      MinHeight="30" />
                             <TextBlock Grid.Column="2"
-                                       Text="1–24; runs as the signed-in user and never installs automatically."
+                                       Text="{loc:Loc Key=Settings_BackgroundHelp}"
                                        Style="{StaticResource MuteText}"
                                        TextWrapping="Wrap"
                                        Margin="8,0,0,0"
                                        VerticalAlignment="Center" />
                         </Grid>
 
-                        <CheckBox Content="Filter by GitHub topic"
+                        <CheckBox Content="{loc:Loc Key=Settings_FilterTopic}"
                                   IsChecked="{Binding UseTopicFilter}"
-                                  AutomationProperties.Name="Filter discovery by GitHub topic" />
+                                  AutomationProperties.Name="{loc:Loc Key=Settings_FilterTopicAutomation}" />
                         <Grid Margin="0,8,0,0">
                             <TextBox x:Name="TopicFilterBox"
                                      Text="{Binding TopicFilter, UpdateSourceTrigger=PropertyChanged}"
-                                     AutomationProperties.Name="GitHub topic filter"
+                                      AutomationProperties.Name="{loc:Loc Key=Settings_TopicAutomation}"
                                      IsEnabled="{Binding UseTopicFilter}" />
-                            <TextBlock Text="windows-app"
+                            <TextBlock Text="{loc:Loc Key=Settings_TopicPlaceholder}"
                                        Style="{StaticResource MuteText}"
                                        Margin="12,0,0,0"
                                        VerticalAlignment="Center"
@@ -394,18 +403,18 @@
                         <TextBlock Style="{StaticResource MuteText}"
                                    TextWrapping="Wrap"
                                    Margin="0,8,0,0"
-                                   Text="When enabled, discovery only shows repos tagged with the selected topic. Otherwise any repo whose latest release ships an MSI / EXE / ZIP can appear." />
+                                    Text="{loc:Loc Key=Settings_TopicHelp}" />
 
-                        <CheckBox Content="Opt in to GitHub Search discovery"
+                        <CheckBox Content="{loc:Loc Key=Settings_SearchDiscovery}"
                                   IsChecked="{Binding EnableGitHubSearchDiscovery}"
-                                  AutomationProperties.Name="Opt in to GitHub Search discovery"
+                                  AutomationProperties.Name="{loc:Loc Key=Settings_SearchDiscoveryAutomation}"
                                   Margin="0,16,0,0" />
                         <Grid Margin="0,8,0,0">
                             <TextBox x:Name="SearchTopicBox"
                                      Text="{Binding SearchTopic, UpdateSourceTrigger=PropertyChanged}"
-                                     AutomationProperties.Name="GitHub Search topic"
+                                      AutomationProperties.Name="{loc:Loc Key=Settings_SearchTopicAutomation}"
                                      IsEnabled="{Binding EnableGitHubSearchDiscovery}" />
-                            <TextBlock Text="windows-app"
+                            <TextBlock Text="{loc:Loc Key=Settings_TopicPlaceholder}"
                                        Style="{StaticResource MuteText}"
                                        Margin="12,0,0,0"
                                        VerticalAlignment="Center"
@@ -415,34 +424,34 @@
                         <TextBlock Style="{StaticResource MuteText}"
                                    TextWrapping="Wrap"
                                    Margin="0,8,0,0"
-                                   Text="Search results are uncurated. Every search-discovered install requires an explicit Authenticode thumbprint pin below." />
+                                    Text="{loc:Loc Key=Settings_SearchDiscoveryHelp}" />
 
-                        <CheckBox Content="Verify SHA-256 sidecar"
+                        <CheckBox Content="{loc:Loc Key=Settings_VerifySidecar}"
                                   IsChecked="{Binding VerifyHashSidecar}"
-                                  AutomationProperties.Name="Verify SHA-256 sidecar before installation"
+                                  AutomationProperties.Name="{loc:Loc Key=Settings_VerifySidecarAutomation}"
                                   Margin="0,16,0,0" />
                         <TextBlock Style="{StaticResource MuteText}"
                                    TextWrapping="Wrap"
                                    Margin="0,8,0,0"
-                                   Text="When enabled, every install verifies the asset against its `.sha256.txt` sidecar before invoking the installer. Refuses to install on mismatch." />
+                                    Text="{loc:Loc Key=Settings_VerifyHelp}" />
 
-                        <TextBlock Text="Search-discovery publisher pins"
+                        <TextBlock Text="{loc:Loc Key=Settings_SearchPinsLabel}"
                                    Style="{StaticResource InputLabel}"
                                    Margin="0,16,0,5" />
                         <TextBox Text="{Binding SearchPublisherPinsInput, UpdateSourceTrigger=PropertyChanged}"
-                                 AutomationProperties.Name="Search discovery publisher pins"
+                                  AutomationProperties.Name="{loc:Loc Key=Settings_SearchPinsAutomation}"
                                  AcceptsReturn="True"
                                  TextWrapping="Wrap"
                                  VerticalScrollBarVisibility="Auto"
                                  MinHeight="54"
                                  MaxHeight="78"
-                                 ToolTip="One per line: owner/repo=40-character Authenticode SHA-1 thumbprint." />
+                                  ToolTip="{loc:Loc Key=Settings_SearchPinsTooltip}" />
                         <TextBlock Style="{StaticResource MuteText}"
                                    TextWrapping="Wrap"
                                    Margin="0,7,0,0"
-                                   Text="Pins are required only for GitHub Search results. Use the signer thumbprint shown by a trusted release or your existing installed manifest." />
+                                    Text="{loc:Loc Key=Settings_SearchPinsHelp}" />
 
-                        <TextBlock Text="Hidden repositories"
+                        <TextBlock Text="{loc:Loc Key=Settings_HiddenReposLabel}"
                                    Style="{StaticResource InputLabel}"
                                    Margin="0,16,0,5" />
                         <Grid>
@@ -453,8 +462,8 @@
                             <Grid Grid.Column="0">
                                 <TextBox x:Name="HiddenRepoBox"
                                          Text="{Binding HiddenRepoInput, UpdateSourceTrigger=PropertyChanged}"
-                                         AutomationProperties.Name="Repository to hide" />
-                                <TextBlock Text="owner/repo"
+                                         AutomationProperties.Name="{loc:Loc Key=Settings_HiddenRepoAutomation}" />
+                                <TextBlock Text="{loc:Loc Key=Settings_HiddenRepoPlaceholder}"
                                            Style="{StaticResource MuteText}"
                                            Margin="12,0,0,0"
                                            VerticalAlignment="Center"
@@ -462,21 +471,21 @@
                                            Visibility="{Binding Text, ElementName=HiddenRepoBox, Converter={StaticResource EmptyStringToVis}}" />
                             </Grid>
                             <Button Grid.Column="1"
-                                    Content="Add"
+                                    Content="{loc:Loc Key=Common_Add}"
                                     Command="{Binding AddHiddenRepoCommand}"
-                                    AutomationProperties.Name="Add hidden repository"
+                                    AutomationProperties.Name="{loc:Loc Key=Settings_AddHiddenAutomation}"
                                     Margin="8,0,0,0" />
                         </Grid>
-                        <TextBlock Text="Hidden repos stay out of discovery and the current catalog view."
+                        <TextBlock Text="{loc:Loc Key=Settings_HiddenHelp}"
                                    Style="{StaticResource MuteText}"
                                    TextWrapping="Wrap"
                                    Margin="0,7,0,0" />
-                        <TextBlock Text="No hidden repos configured."
+                        <TextBlock Text="{loc:Loc Key=Settings_NoHidden}"
                                    Style="{StaticResource MuteText}"
                                    Margin="0,7,0,0"
                                    Visibility="{Binding HasHiddenRepos, Converter={StaticResource BoolToVis}, ConverterParameter=invert}" />
                             <ListBox ItemsSource="{Binding HiddenRepos}"
-                                 AutomationProperties.Name="Hidden repositories"
+                                 AutomationProperties.Name="{loc:Loc Key=Settings_HiddenReposAutomation}"
                                  MaxHeight="82"
                                  Margin="0,7,0,0"
                                  Visibility="{Binding HasHiddenRepos, Converter={StaticResource BoolToVis}}">
@@ -484,10 +493,10 @@
                                 <DataTemplate>
                                     <DockPanel LastChildFill="True">
                                         <Button DockPanel.Dock="Right"
-                                                Content="Unhide"
+                                                Content="{loc:Loc Key=Common_Unhide}"
                                                 Command="{Binding DataContext.RemoveHiddenRepoCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                 CommandParameter="{Binding}"
-                                                AutomationProperties.Name="Unhide hidden repository"
+                                                AutomationProperties.Name="{loc:Loc Key=Settings_UnhideAutomation}"
                                                 Style="{StaticResource LinkButton}"
                                                 Margin="8,0,0,0" />
                                         <TextBlock Text="{Binding}"
@@ -503,14 +512,14 @@
                     <StackPanel Grid.Column="2"
                                 MinWidth="170"
                                 VerticalAlignment="Bottom">
-                        <Button Content="Save and refresh"
+                        <Button Content="{loc:Loc Key=Settings_SaveRefresh}"
                                 Command="{Binding SaveAndRefreshCommand}"
-                                AutomationProperties.Name="Save settings and refresh catalog"
+                                 AutomationProperties.Name="{loc:Loc Key=Settings_SaveRefreshAutomation}"
                                 Style="{StaticResource AccentButton}"
                                 Margin="0,0,0,8" />
-                        <Button Content="Save settings"
+                        <Button Content="{loc:Loc Key=Settings_Save}"
                                 Command="{Binding SaveSettingsCommand}"
-                                AutomationProperties.Name="Save settings" />
+                                 AutomationProperties.Name="{loc:Loc Key=Settings_SaveAutomation}" />
                     </StackPanel>
                 </Grid>
              </Grid>
@@ -551,14 +560,14 @@
                                TextWrapping="Wrap"
                                Margin="0,8,0,18" />
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                        <Button Content="Refresh catalog"
+                        <Button Content="{loc:Loc Key=Empty_Refresh}"
                                 Command="{Binding RefreshCommand}"
-                                AutomationProperties.Name="Refresh catalog"
+                                AutomationProperties.Name="{loc:Loc Key=Empty_RefreshAutomation}"
                                 Style="{StaticResource AccentButton}"
                                 Margin="0,0,8,0" />
-                        <Button Content="Open settings"
+                        <Button Content="{loc:Loc Key=Empty_OpenSettings}"
                                 Click="ToggleSettings_Click"
-                                AutomationProperties.Name="Open settings" />
+                                AutomationProperties.Name="{loc:Loc Key=Empty_OpenSettingsAutomation}" />
                     </StackPanel>
                 </StackPanel>
             </Border>
@@ -574,15 +583,15 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="20,8,0,8" VerticalAlignment="Center">
-                    <TextBlock Text="Activity log" Style="{StaticResource SectionTitle}" />
-                    <TextBlock Text="Download, install, run, and error events"
+                    <TextBlock Text="{loc:Loc Key=Activity_Title}" Style="{StaticResource SectionTitle}" />
+                    <TextBlock Text="{loc:Loc Key=Activity_Description}"
                                Style="{StaticResource MuteText}"
                                Margin="10,1,0,0" />
                 </StackPanel>
                 <Button Grid.Column="1"
-                        Content="Clear"
+                        Content="{loc:Loc Key=Common_Clear}"
                         Command="{Binding ClearLogCommand}"
-                        AutomationProperties.Name="Clear activity log"
+                        AutomationProperties.Name="{loc:Loc Key=Activity_ClearAutomation}"
                         Style="{StaticResource LinkButton}"
                         Margin="0,0,16,0" />
             </Grid>
@@ -590,7 +599,7 @@
 
         <Border Grid.Row="5" Background="{DynamicResource CrustBrush}" Padding="16,10">
             <ListBox ItemsSource="{Binding LogLines}"
-                     AutomationProperties.Name="Activity log"
+                     AutomationProperties.Name="{loc:Loc Key=Activity_Automation}"
                      AutomationProperties.LiveSetting="Polite"
                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                      ScrollViewer.VerticalScrollBarVisibility="Auto"
@@ -630,7 +639,7 @@
                            Text="{Binding StatusText}"
                            Style="{StaticResource SubtleText}" />
                 <TextBlock Grid.Column="1" Style="{StaticResource MuteText}">
-                    <Run Text="LocalDesktopStore v0.2.1" />
+                    <Run Text="{loc:Loc Key=Footer_Version}" />
                 </TextBlock>
             </Grid>
         </Border>

@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="MainWindow_Title" xml:space="preserve"><value>LocalDesktopStore</value></data>
+  <data name="MainWindow_Tagline" xml:space="preserve"><value>A private catalog for Windows desktop apps built from your GitHub releases.</value></data>
+  <data name="MainWindow_AvailableSuffix" xml:space="preserve"><value> available</value></data>
+  <data name="MainWindow_Separator" xml:space="preserve"><value> / </value></data>
+  <data name="MainWindow_InstalledSuffix" xml:space="preserve"><value> installed</value></data>
+  <data name="MainWindow_FileMenu" xml:space="preserve"><value>_File</value></data>
+  <data name="MainWindow_FileMenuAutomation" xml:space="preserve"><value>File menu</value></data>
+  <data name="MainWindow_ExportCatalog" xml:space="preserve"><value>_Export catalog</value></data>
+  <data name="MainWindow_ExportCatalogAutomation" xml:space="preserve"><value>Export catalog</value></data>
+  <data name="MainWindow_ImportCatalog" xml:space="preserve"><value>_Import catalog</value></data>
+  <data name="MainWindow_ImportCatalogAutomation" xml:space="preserve"><value>Import catalog</value></data>
+  <data name="MainWindow_SearchAutomation" xml:space="preserve"><value>Search apps, repositories, or descriptions</value></data>
+  <data name="MainWindow_InstalledOnly" xml:space="preserve"><value>Installed only</value></data>
+  <data name="MainWindow_InstalledOnlyAutomation" xml:space="preserve"><value>Show installed apps only</value></data>
+  <data name="MainWindow_InstallFolder" xml:space="preserve"><value>Install folder</value></data>
+  <data name="MainWindow_InstallFolderAutomation" xml:space="preserve"><value>Open install folder</value></data>
+  <data name="MainWindow_UpdateAllAutomation" xml:space="preserve"><value>Update all outdated apps</value></data>
+  <data name="MainWindow_UpdateAllTooltip" xml:space="preserve"><value>Sequentially update every installed app whose remote release is newer than the local pin.</value></data>
+  <data name="MainWindow_Refresh" xml:space="preserve"><value>Refresh</value></data>
+  <data name="MainWindow_RefreshAutomation" xml:space="preserve"><value>Refresh catalog</value></data>
+  <data name="MainWindow_Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="MainWindow_SettingsAutomation" xml:space="preserve"><value>Show or hide settings</value></data>
+  <data name="MainWindow_InstallSelected" xml:space="preserve"><value>Install selected</value></data>
+  <data name="MainWindow_InstallSelectedAutomation" xml:space="preserve"><value>Install selected apps</value></data>
+  <data name="MainWindow_UpdateSelected" xml:space="preserve"><value>Update selected</value></data>
+  <data name="MainWindow_UpdateSelectedAutomation" xml:space="preserve"><value>Update selected apps</value></data>
+  <data name="MainWindow_UninstallSelected" xml:space="preserve"><value>Uninstall selected</value></data>
+  <data name="MainWindow_UninstallSelectedAutomation" xml:space="preserve"><value>Uninstall selected apps</value></data>
+  <data name="MainWindow_ClearSelection" xml:space="preserve"><value>Clear selection</value></data>
+  <data name="MainWindow_ClearSelectionAutomation" xml:space="preserve"><value>Clear selected apps</value></data>
+  <data name="Settings_Title" xml:space="preserve"><value>Discovery settings</value></data>
+  <data name="Settings_Description" xml:space="preserve"><value>Configure the curated GitHub source, optional search discovery, hash verification, and rate-limit token.</value></data>
+  <data name="Settings_Close" xml:space="preserve"><value>Close</value></data>
+  <data name="Settings_CloseAutomation" xml:space="preserve"><value>Close settings</value></data>
+  <data name="Settings_GitHubUserLabel" xml:space="preserve"><value>GitHub user or organization</value></data>
+  <data name="Settings_GitHubUserPlaceholder" xml:space="preserve"><value>example: SysAdminDoc</value></data>
+  <data name="Settings_GitHubTokenLabel" xml:space="preserve"><value>GitHub personal access token</value></data>
+  <data name="Settings_GitHubTokenAutomation" xml:space="preserve"><value>GitHub personal access token</value></data>
+  <data name="Settings_GitHubTokenHelp" xml:space="preserve"><value>Optional. Stored only in your local settings file; leave blank to use public GitHub rate limits.</value></data>
+  <data name="Settings_InstallFolderLabel" xml:space="preserve"><value>Install folder override</value></data>
+  <data name="Settings_InstallFolderAutomation" xml:space="preserve"><value>Install folder override</value></data>
+  <data name="Settings_InstallFolderPlaceholder" xml:space="preserve"><value>(default %LOCALAPPDATA%\LocalDesktopStore\apps)</value></data>
+  <data name="Settings_ExtraOwnersLabel" xml:space="preserve"><value>Extra GitHub owners</value></data>
+  <data name="Settings_ExtraOwnerAutomation" xml:space="preserve"><value>Extra GitHub owner</value></data>
+  <data name="Settings_ExtraOwnerPlaceholder" xml:space="preserve"><value>owner or organization</value></data>
+  <data name="Common_Add" xml:space="preserve"><value>Add</value></data>
+  <data name="Settings_AddExtraOwnerAutomation" xml:space="preserve"><value>Add extra GitHub owner</value></data>
+  <data name="Settings_NoExtraOwners" xml:space="preserve"><value>No extra owners configured.</value></data>
+  <data name="Settings_ExtraOwnersAutomation" xml:space="preserve"><value>Extra GitHub owners</value></data>
+  <data name="Common_Remove" xml:space="preserve"><value>Remove</value></data>
+  <data name="Settings_RemoveExtraOwnerAutomation" xml:space="preserve"><value>Remove extra GitHub owner</value></data>
+  <data name="Settings_Appearance" xml:space="preserve"><value>Appearance</value></data>
+  <data name="Settings_LightTheme" xml:space="preserve"><value>Use Catppuccin Latte light theme</value></data>
+  <data name="Settings_LightThemeAutomation" xml:space="preserve"><value>Use Catppuccin Latte light theme</value></data>
+  <data name="Settings_LightThemeHelp" xml:space="preserve"><value>Switches the palette immediately; save settings to keep it for the next launch.</value></data>
+  <data name="Settings_SystemAccent" xml:space="preserve"><value>Use Windows system accent</value></data>
+  <data name="Settings_SystemAccentAutomation" xml:space="preserve"><value>Use Windows system accent color</value></data>
+  <data name="Settings_SystemAccentHelp" xml:space="preserve"><value>Uses the Windows accent for the primary action and focus ring.</value></data>
+  <data name="Settings_LanguageLabel" xml:space="preserve"><value>Language</value></data>
+  <data name="Settings_LanguageAutomation" xml:space="preserve"><value>Interface language</value></data>
+  <data name="Settings_BackgroundUpdates" xml:space="preserve"><value>Background updates</value></data>
+  <data name="Settings_CheckBackground" xml:space="preserve"><value>Check for updates in the background</value></data>
+  <data name="Settings_CheckBackgroundAutomation" xml:space="preserve"><value>Check for updates in the background</value></data>
+  <data name="Settings_IntervalHours" xml:space="preserve"><value>Interval (hours)</value></data>
+  <data name="Settings_IntervalAutomation" xml:space="preserve"><value>Background update interval in hours</value></data>
+  <data name="Settings_BackgroundHelp" xml:space="preserve"><value>1–24; runs as the signed-in user and never installs automatically.</value></data>
+  <data name="Settings_FilterTopic" xml:space="preserve"><value>Filter by GitHub topic</value></data>
+  <data name="Settings_FilterTopicAutomation" xml:space="preserve"><value>Filter discovery by GitHub topic</value></data>
+  <data name="Settings_TopicAutomation" xml:space="preserve"><value>GitHub topic filter</value></data>
+  <data name="Settings_TopicPlaceholder" xml:space="preserve"><value>windows-app</value></data>
+  <data name="Settings_TopicHelp" xml:space="preserve"><value>When enabled, discovery only shows repos tagged with the selected topic. Otherwise any repo whose latest release ships an MSI / EXE / ZIP can appear.</value></data>
+  <data name="Settings_SearchDiscovery" xml:space="preserve"><value>Opt in to GitHub Search discovery</value></data>
+  <data name="Settings_SearchDiscoveryAutomation" xml:space="preserve"><value>Opt in to GitHub Search discovery</value></data>
+  <data name="Settings_SearchTopicAutomation" xml:space="preserve"><value>GitHub Search topic</value></data>
+  <data name="Settings_SearchDiscoveryHelp" xml:space="preserve"><value>Search results are uncurated. Every search-discovered install requires an explicit Authenticode thumbprint pin below.</value></data>
+  <data name="Settings_VerifySidecar" xml:space="preserve"><value>Verify SHA-256 sidecar</value></data>
+  <data name="Settings_VerifySidecarAutomation" xml:space="preserve"><value>Verify SHA-256 sidecar before installation</value></data>
+  <data name="Settings_VerifyHelp" xml:space="preserve"><value>When enabled, every install verifies the asset against its `.sha256.txt` sidecar before invoking the installer. Refuses to install on mismatch.</value></data>
+  <data name="Settings_SearchPinsLabel" xml:space="preserve"><value>Search-discovery publisher pins</value></data>
+  <data name="Settings_SearchPinsAutomation" xml:space="preserve"><value>Search discovery publisher pins</value></data>
+  <data name="Settings_SearchPinsTooltip" xml:space="preserve"><value>One per line: owner/repo=40-character Authenticode SHA-1 thumbprint.</value></data>
+  <data name="Settings_SearchPinsHelp" xml:space="preserve"><value>Pins are required only for GitHub Search results. Use the signer thumbprint shown by a trusted release or your existing installed manifest.</value></data>
+  <data name="Settings_HiddenReposLabel" xml:space="preserve"><value>Hidden repositories</value></data>
+  <data name="Settings_HiddenRepoAutomation" xml:space="preserve"><value>Repository to hide</value></data>
+  <data name="Settings_HiddenRepoPlaceholder" xml:space="preserve"><value>owner/repo</value></data>
+  <data name="Settings_AddHiddenAutomation" xml:space="preserve"><value>Add hidden repository</value></data>
+  <data name="Settings_HiddenHelp" xml:space="preserve"><value>Hidden repos stay out of discovery and the current catalog view.</value></data>
+  <data name="Settings_NoHidden" xml:space="preserve"><value>No hidden repos configured.</value></data>
+  <data name="Settings_HiddenReposAutomation" xml:space="preserve"><value>Hidden repositories</value></data>
+  <data name="Common_Unhide" xml:space="preserve"><value>Unhide</value></data>
+  <data name="Settings_UnhideAutomation" xml:space="preserve"><value>Unhide hidden repository</value></data>
+  <data name="Settings_SaveRefresh" xml:space="preserve"><value>Save and refresh</value></data>
+  <data name="Settings_SaveRefreshAutomation" xml:space="preserve"><value>Save settings and refresh catalog</value></data>
+  <data name="Settings_Save" xml:space="preserve"><value>Save settings</value></data>
+  <data name="Settings_SaveAutomation" xml:space="preserve"><value>Save settings</value></data>
+  <data name="Empty_Refresh" xml:space="preserve"><value>Refresh catalog</value></data>
+  <data name="Empty_RefreshAutomation" xml:space="preserve"><value>Refresh catalog</value></data>
+  <data name="Empty_OpenSettings" xml:space="preserve"><value>Open settings</value></data>
+  <data name="Empty_OpenSettingsAutomation" xml:space="preserve"><value>Open settings</value></data>
+  <data name="Activity_Title" xml:space="preserve"><value>Activity log</value></data>
+  <data name="Activity_Description" xml:space="preserve"><value>Download, install, run, and error events</value></data>
+  <data name="Common_Clear" xml:space="preserve"><value>Clear</value></data>
+  <data name="Activity_ClearAutomation" xml:space="preserve"><value>Clear activity log</value></data>
+  <data name="Activity_Automation" xml:space="preserve"><value>Activity log</value></data>
+  <data name="Footer_Version" xml:space="preserve"><value>LocalDesktopStore v0.2.1</value></data>
+  <data name="MainWindow_Badge" xml:space="preserve"><value>LDS</value></data>
+  <data name="Card_Badge" xml:space="preserve"><value>APP</value></data>
+  <data name="Card_Export" xml:space="preserve"><value>Export</value></data>
+  <data name="Card_ExportAutomation" xml:space="preserve"><value>Export WinGet manifest for this app</value></data>
+  <data name="Card_ExportTooltip" xml:space="preserve"><value>Download the release asset, calculate its SHA-256, and write a v1.6 WinGet manifest.</value></data>
+  <data name="Card_Hide" xml:space="preserve"><value>Hide</value></data>
+  <data name="Card_HideAutomation" xml:space="preserve"><value>Hide this app</value></data>
+  <data name="Card_HideTooltip" xml:space="preserve"><value>Hide this app from the catalog.</value></data>
+  <data name="Card_SelectAutomation" xml:space="preserve"><value>Select this app for bulk operations</value></data>
+  <data name="Card_SelectTooltip" xml:space="preserve"><value>Select this app for bulk install, update, or uninstall operations.</value></data>
+  <data name="Card_ViewCrash" xml:space="preserve"><value>View crash log</value></data>
+  <data name="Card_ViewCrashAutomation" xml:space="preserve"><value>View crash log for this app</value></data>
+  <data name="Card_ViewCrashTooltip" xml:space="preserve"><value>Open LocalDesktopStore's install and crash logs folder.</value></data>
+  <data name="Card_CustomArgsLabel" xml:space="preserve"><value>Custom installer arguments (optional)</value></data>
+  <data name="Card_CustomArgsLabelAutomation" xml:space="preserve"><value>Custom installer arguments label</value></data>
+  <data name="Card_CustomArgsAutomation" xml:space="preserve"><value>Custom installer arguments</value></data>
+  <data name="Card_CustomArgsTooltip" xml:space="preserve"><value>Optional switches appended to the safe defaults for MSI, Inno, NSIS, or generic EXE installers. Use Windows command-line quoting; values are passed as argument tokens, never evaluated by a shell.</value></data>
+  <data name="Card_RunAfter" xml:space="preserve"><value>Run after install</value></data>
+  <data name="Card_RunAfterAutomation" xml:space="preserve"><value>Run this app after installation</value></data>
+  <data name="Card_RunAfterTooltip" xml:space="preserve"><value>Launch this app automatically after a successful install or update.</value></data>
+  <data name="Card_PinAfter" xml:space="preserve"><value>Pin after install</value></data>
+  <data name="Card_PinAfterAutomation" xml:space="preserve"><value>Pin this app to the taskbar after installation</value></data>
+  <data name="Card_PinAfterTooltip" xml:space="preserve"><value>Ask Windows to pin the app's launch target to the taskbar after a successful install or update.</value></data>
+  <data name="Card_InstallAutomation" xml:space="preserve"><value>Install or update this app</value></data>
+  <data name="Card_Run" xml:space="preserve"><value>Run</value></data>
+  <data name="Card_RunAutomation" xml:space="preserve"><value>Run this app</value></data>
+  <data name="Card_Uninstall" xml:space="preserve"><value>Uninstall</value></data>
+  <data name="Card_UninstallAutomation" xml:space="preserve"><value>Uninstall this app</value></data>
+  <data name="Card_Folder" xml:space="preserve"><value>Folder</value></data>
+  <data name="Card_FolderAutomation" xml:space="preserve"><value>Open this app's install folder</value></data>
+  <data name="Card_Repo" xml:space="preserve"><value>Repo</value></data>
+  <data name="Card_RepoAutomation" xml:space="preserve"><value>Open this app's repository</value></data>
+</root>

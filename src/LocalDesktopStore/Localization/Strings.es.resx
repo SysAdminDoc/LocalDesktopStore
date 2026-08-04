@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="MainWindow_Tagline" xml:space="preserve"><value>Un catálogo privado de aplicaciones de escritorio de Windows creado con tus versiones de GitHub.</value></data>
+  <data name="MainWindow_FileMenu" xml:space="preserve"><value>_Archivo</value></data>
+  <data name="MainWindow_ExportCatalog" xml:space="preserve"><value>_Exportar catálogo</value></data>
+  <data name="MainWindow_ImportCatalog" xml:space="preserve"><value>_Importar catálogo</value></data>
+  <data name="MainWindow_InstalledOnly" xml:space="preserve"><value>Solo instaladas</value></data>
+  <data name="MainWindow_InstallFolder" xml:space="preserve"><value>Carpeta de instalación</value></data>
+  <data name="MainWindow_Refresh" xml:space="preserve"><value>Actualizar</value></data>
+  <data name="MainWindow_Settings" xml:space="preserve"><value>Configuración</value></data>
+  <data name="Settings_Title" xml:space="preserve"><value>Configuración de descubrimiento</value></data>
+  <data name="Settings_Close" xml:space="preserve"><value>Cerrar</value></data>
+  <data name="Settings_Appearance" xml:space="preserve"><value>Apariencia</value></data>
+  <data name="Settings_LanguageLabel" xml:space="preserve"><value>Idioma</value></data>
+  <data name="Settings_BackgroundUpdates" xml:space="preserve"><value>Actualizaciones en segundo plano</value></data>
+  <data name="Settings_SaveRefresh" xml:space="preserve"><value>Guardar y actualizar</value></data>
+  <data name="Settings_Save" xml:space="preserve"><value>Guardar configuración</value></data>
+  <data name="Activity_Title" xml:space="preserve"><value>Registro de actividad</value></data>
+  <data name="Common_Clear" xml:space="preserve"><value>Limpiar</value></data>
+  <data name="Card_Export" xml:space="preserve"><value>Exportar</value></data>
+  <data name="Card_Hide" xml:space="preserve"><value>Ocultar</value></data>
+  <data name="Card_Run" xml:space="preserve"><value>Ejecutar</value></data>
+  <data name="Card_Uninstall" xml:space="preserve"><value>Desinstalar</value></data>
+</root>

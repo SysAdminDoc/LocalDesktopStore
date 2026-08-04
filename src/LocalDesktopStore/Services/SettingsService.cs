@@ -62,6 +62,13 @@ public sealed class SettingsService
             var settings = JsonSerializer.Deserialize<AppSettings>(json, JsonOpts) ?? new AppSettings();
             settings.ExtraOwners ??= new List<string>();
             settings.HiddenRepos ??= new List<string>();
+            settings.UiLanguage = settings.UiLanguage?.Trim().ToLowerInvariant() switch
+            {
+                "en" => "en",
+                "es" => "es",
+                "system" => "system",
+                _ => "en"
+            };
             settings.SearchTopic = string.IsNullOrWhiteSpace(settings.SearchTopic) ? "windows-app" : settings.SearchTopic.Trim();
             settings.CatalogVersionPins ??= new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             settings.CatalogVersionPins = new Dictionary<string, string>(settings.CatalogVersionPins, StringComparer.OrdinalIgnoreCase);

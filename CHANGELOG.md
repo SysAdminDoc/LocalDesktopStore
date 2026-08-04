@@ -21,6 +21,7 @@ All notable changes to LocalDesktopStore are documented here. Format follows [Ke
 - **In-process artifact-handler host** (L2) — classification and install / uninstall / run lifecycle paths now resolve through one explicitly bundled `IArtifactHandler` registry. Velopack full-package payloads are recognized and refused as non-standalone installers, while AppImage support is guarded to Linux; no remote plugin loading exists.
 - **Headless CLI** (L4) — `--install`, `--uninstall`, `--run`, `--refresh`, `--list`, `--version`, `--help`, and optional `--json` output share the GUI service layer without constructing a WPF window. Publisher changes remain fail-closed without interactive approval.
 - **Opt-in GitHub Search discovery** (L5) — an explicit topic search probes up to 50 star-sorted repositories for supported release assets and labels results as uncurated. Search-discovered installs require a preconfigured, exact Authenticode publisher thumbprint for that `owner/repo`; archive/package handoffs are refused.
+- **Runtime localization** (L6) — user-facing WPF text now comes from `Strings.resx` with an optional Spanish satellite resource, an English default, and an in-app System default / English / Español culture switch persisted in settings and catalog exports.
 
 ### Changed
 - Refreshes now use a lockfile aligned with the framework-dependent project target, so locked restores no longer carry a stale `win-x64` runtime graph.
