@@ -4,6 +4,9 @@ public sealed class AppSettings
 {
     public string GitHubUser { get; set; } = "SysAdminDoc";
     public string? GitHubToken { get; set; }
+    public string? GitHubTokenProtected { get; set; }
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool GitHubTokenWasProtected { get; set; }
     public bool UseTopicFilter { get; set; } = false;
     public string TopicFilter { get; set; } = "windows-app";
     public bool EnableGitHubSearchDiscovery { get; set; }

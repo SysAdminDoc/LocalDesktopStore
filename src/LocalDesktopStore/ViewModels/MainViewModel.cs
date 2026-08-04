@@ -554,7 +554,14 @@ public sealed class MainViewModel : ViewModelBase
         }
 
         _settings.GitHubUser = user;
-        _settings.GitHubToken = string.IsNullOrWhiteSpace(GitHubTokenInput) ? null : GitHubTokenInput.Trim();
+        var nextGitHubToken = string.IsNullOrWhiteSpace(GitHubTokenInput) ? null : GitHubTokenInput.Trim();
+        if (_settings.GitHubTokenWasProtected
+            && !string.Equals(_settings.GitHubToken, nextGitHubToken, StringComparison.Ordinal))
+        {
+            _settings.GitHubTokenWasProtected = false;
+            _settings.GitHubTokenProtected = null;
+        }
+        _settings.GitHubToken = nextGitHubToken;
         _settings.TopicFilter = topic;
         _settings.UiLanguage = UiLanguage;
         _settings.SearchTopic = SearchTopic.Trim();

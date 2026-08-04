@@ -492,6 +492,8 @@ public static class CommandLineHost
         {
             GitHubUser = owner,
             GitHubToken = source.GitHubToken,
+            GitHubTokenProtected = source.GitHubTokenProtected,
+            GitHubTokenWasProtected = source.GitHubTokenWasProtected,
             UseTopicFilter = source.UseTopicFilter,
             TopicFilter = source.TopicFilter,
             HiddenRepos = new List<string>(source.HiddenRepos),

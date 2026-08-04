@@ -1,0 +1,62 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package
+      Name="LocalDesktopStore"
+      Manufacturer="SysAdminDoc"
+      Version="$(var.ProductVersion)"
+      Scope="$(var.PackageScope)"
+      UpgradeCode="$(var.UpgradeCode)"
+      Compressed="yes">
+    <MajorUpgrade DowngradeErrorMessage="A newer version of LocalDesktopStore is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <StandardDirectory Id="$(var.RootDirectory)">
+<?if $(var.PackageScope) = perUser ?>
+      <Directory Id="LDSProgramsFolder" Name="Programs">
+        <Directory Id="INSTALLFOLDER" Name="LocalDesktopStore" />
+      </Directory>
+<?else?>
+      <Directory Id="INSTALLFOLDER" Name="LocalDesktopStore" />
+<?endif?>
+    </StandardDirectory>
+
+    <Feature Id="MainFeature" Title="LocalDesktopStore" Level="1">
+      <ComponentGroupRef Id="ApplicationFiles" />
+    </Feature>
+
+    <ComponentGroup Id="ApplicationFiles" Directory="INSTALLFOLDER">
+<?if $(var.PackageScope) = perUser ?>
+      <Component Guid="$(var.ComponentGuid)">
+        <RegistryKey Root="HKCU" Key="Software\SysAdminDoc\LocalDesktopStore\Components">
+          <RegistryValue Name="ApplicationFiles" Type="integer" Value="1" KeyPath="yes" />
+        </RegistryKey>
+        <File Source="$(var.PublishDir)\LocalDesktopStore.exe" />
+        <File Source="$(var.PublishDir)\LocalDesktopStore.dll" />
+        <File Source="$(var.PublishDir)\LocalDesktopStore.deps.json" />
+        <File Source="$(var.PublishDir)\LocalDesktopStore.runtimeconfig.json" />
+        <File Source="$(var.PublishDir)\Microsoft.Management.Deployment.CsWinRTProjection.dll" />
+        <File Source="$(var.PublishDir)\Microsoft.Management.Deployment.dll" />
+        <File Source="$(var.PublishDir)\Microsoft.Management.Deployment.winmd" />
+        <File Source="$(var.PublishDir)\Microsoft.Windows.SDK.NET.dll" />
+        <File Source="$(var.PublishDir)\Octokit.dll" />
+        <File Source="$(var.PublishDir)\WinRT.Runtime.dll" />
+        <RemoveFile Id="RemoveApplicationFiles" Name="*" On="uninstall" />
+        <RemoveFolder Id="RemoveInstallFolder" On="uninstall" />
+        <RemoveFolder Id="RemoveProgramsFolder" Directory="LDSProgramsFolder" On="uninstall" />
+      </Component>
+<?else?>
+      <Component Guid="$(var.ComponentGuid)">
+        <File Source="$(var.PublishDir)\LocalDesktopStore.exe" KeyPath="yes" />
+        <File Source="$(var.PublishDir)\LocalDesktopStore.dll" />
+        <File Source="$(var.PublishDir)\LocalDesktopStore.deps.json" />
+        <File Source="$(var.PublishDir)\LocalDesktopStore.runtimeconfig.json" />
+        <File Source="$(var.PublishDir)\Microsoft.Management.Deployment.CsWinRTProjection.dll" />
+        <File Source="$(var.PublishDir)\Microsoft.Management.Deployment.dll" />
+        <File Source="$(var.PublishDir)\Microsoft.Management.Deployment.winmd" />
+        <File Source="$(var.PublishDir)\Microsoft.Windows.SDK.NET.dll" />
+        <File Source="$(var.PublishDir)\Octokit.dll" />
+        <File Source="$(var.PublishDir)\WinRT.Runtime.dll" />
+      </Component>
+<?endif?>
+    </ComponentGroup>
+  </Package>
+</Wix>

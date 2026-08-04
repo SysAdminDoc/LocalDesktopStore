@@ -62,6 +62,7 @@ LocalDesktopStore knows about all of those. It picks the right asset off each re
 - **WinGet manifest export** — export a v1.6 singleton manifest per card, with a locally calculated installer hash and the appropriate MSI / Inno / NSIS / EXE / portable ZIP metadata
 - **Catppuccin Mocha / Latte themes** — switch palettes at runtime, with an optional Windows system accent
 - **Runtime localization** — English is the default, with System default and Español choices in Settings; translations live in `Localization/Strings*.resx` and update the WPF surface immediately
+- **Enterprise MSI packaging** — the WiX lane emits separately validated unsigned x64 per-user and per-machine MSIs for GPO / Intune deployment, with an optional machine-scope DPAPI settings seed
 - **Scheduled background update checks** — optionally poll every 1–24 hours, keep a least-privilege interactive Task Scheduler entry, and show native tray notifications without installing automatically
 - **Bulk selection operations** — select cards and run install, update, or uninstall sequentially with one aggregate status banner
 - **Catalog transfer** — File → Export/Import round-trips owners, hidden per-app overrides, install preferences, and version pins in a `.lds.json` file without exporting the GitHub PAT
@@ -81,6 +82,33 @@ LocalDesktopStore knows about all of those. It picks the right asset off each re
 4. Run `LocalDesktopStore.exe`
 
 Requires the [.NET 9 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/9.0) — download the `Windows x64` Desktop Runtime installer if it's not already on the box.
+
+### Enterprise MSI deployment
+
+Build the two unsigned x64 packages locally after publishing the framework-dependent app:
+
+```powershell
+pwsh -NoProfile -File installer\build.ps1 -Version 0.2.1
+```
+
+The per-user MSI installs to `%LOCALAPPDATA%\Programs\LocalDesktopStore` without elevation. The per-machine MSI installs to `%ProgramFiles%\LocalDesktopStore` and is suitable for an elevated GPO deployment or an Intune Win32 app. Both packages are intentionally unsigned; the project never adds a code-signing step or certificate trust.
+
+For a silent deployment, use the package that matches the assignment scope:
+
+```powershell
+msiexec.exe /i LocalDesktopStore-v0.2.1-per-user-x64.msi /qn /norestart
+msiexec.exe /i LocalDesktopStore-v0.2.1-per-machine-x64.msi /qn /norestart
+```
+
+To seed a shared GitHub owner and PAT without putting the token in a command line or plaintext JSON, provide it to the provisioning process through the `LDS_GITHUB_TOKEN` environment variable and write the machine-scope DPAPI seed under `%ProgramData%`:
+
+```powershell
+pwsh -NoProfile -File installer\New-EnterpriseSettings.ps1 `
+  -OutputPath "$env:ProgramData\LocalDesktopStore\settings.json" `
+  -GitHubUser SysAdminDoc
+```
+
+LDS reads that seed only when the signed-in user has no `%APPDATA%\LocalDesktopStore\settings.json`. The `GitHubTokenProtected` value is encrypted with Windows DPAPI machine scope; changing settings preserves the protected form until an operator explicitly replaces the token.
 
 ### From source
 
@@ -158,6 +186,7 @@ If multiple eligible assets ship in the same release, MSI wins, then App Install
 | Path | Purpose |
 | --- | --- |
 | `%APPDATA%\LocalDesktopStore\settings.json` | User settings (GitHub user, token, install root) |
+| `%ProgramData%\LocalDesktopStore\settings.json` | Optional enterprise seed (owner plus DPAPI machine-protected GitHub PAT) |
 | `%APPDATA%\LocalDesktopStore\installed.json` | Installed-app manifest (registry key, command, location) |
 | `%LOCALAPPDATA%\LocalDesktopStore\apps\<owner>\<repo>\<version>\` | Extracted portable apps |
 | `%LOCALAPPDATA%\LocalDesktopStore\downloads\` | Cached release assets (cleaned on demand) |
@@ -195,6 +224,8 @@ WPF on .NET 9 — MVVM, no third-party MVVM toolkit. The whole app is ~1,800 lin
   - `TrayIconService` — native `Shell_NotifyIcon` update notifications
   - `CatalogTransferService` — validated, token-free `.lds.json` import/export
 - `Localization/` — neutral English `Strings.resx`, community `Strings.{lang}.resx` resources, and the live WPF `LocExtension` provider
+- `installer/` — WiX 5 source and a repeatable build/ICE-validation script for separate per-user and per-machine unsigned MSIs, plus DPAPI seed provisioning
+- `EnterpriseSettingsProtector` — Windows machine-scope DPAPI protection for enterprise GitHub PAT seeds; plaintext PATs are never emitted by the provisioning script
 - `ViewModels/` — `MainViewModel` orchestrates everything; `AppCardViewModel` per-card state
 - `Views/` — `AppCardView` user control + the main window
 - `Themes/` — Catppuccin Mocha and Latte resource dictionaries plus the shared runtime-switchable control styles
