@@ -28,6 +28,7 @@ All notable changes to LocalDesktopStore are documented here. Format follows [Ke
 
 ### Changed
 - Refreshes now use a lockfile aligned with the framework-dependent project target, so locked restores no longer carry a stale `win-x64` runtime graph.
+- Velopack release packaging clears only its own stale channel artifacts before rebuilding, keeping the published feed aligned with the uploaded packages.
 
 ## v0.2.1 - 2026-06-27
 

@@ -23,6 +23,19 @@ Write-Host "Publishing framework-dependent $Runtime application..."
 if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed with exit code $LASTEXITCODE." }
 
 New-Item -ItemType Directory -Force -Path $outputPath | Out-Null
+$generatedOutput = Get-ChildItem -LiteralPath $outputPath -File -ErrorAction SilentlyContinue |
+    Where-Object {
+        $_.Name -eq "assets.$($Runtime.Split('-')[0]).json" -or
+        $_.Name -eq "releases.$($Runtime.Split('-')[0]).json" -or
+        $_.Name -eq "RELEASES" -or
+        $_.Name -eq "$packId-win-Setup.exe" -or
+        $_.Name -eq "$packId-win-Portable.zip" -or
+        $_.Name -like "$packId-*-full.nupkg" -or
+        $_.Name -like "$packId-*-delta.nupkg"
+    }
+foreach ($file in $generatedOutput) {
+    Remove-Item -LiteralPath $file.FullName -Force
+}
 $toolSpec = "vpk@$velopackVersion"
 Write-Host "Packing unsigned Velopack release with $toolSpec..."
 & dnx $toolSpec -- --yes pack `
