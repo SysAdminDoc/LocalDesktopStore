@@ -16,7 +16,7 @@ public sealed class GitHubService
     public GitHubService()
     {
         _http = new HttpClient();
-        _http.DefaultRequestHeaders.UserAgent.ParseAdd("LocalDesktopStore/0.2.1");
+        _http.DefaultRequestHeaders.UserAgent.ParseAdd("LocalDesktopStore/0.3.0");
     }
 
     public int CacheHits => _etagHandler?.Hits ?? 0;
@@ -25,7 +25,7 @@ public sealed class GitHubService
     private GitHubClient GetClient(AppSettings cfg)
     {
         if (_client != null && _activeToken == cfg.GitHubToken) return _client;
-        var product = new ProductHeaderValue("LocalDesktopStore", "0.2.1");
+        var product = new ProductHeaderValue("LocalDesktopStore", "0.3.0");
         var credStore = string.IsNullOrWhiteSpace(cfg.GitHubToken)
             ? (ICredentialStore)new InMemoryCredentialStore(Credentials.Anonymous)
             : new InMemoryCredentialStore(new Credentials(cfg.GitHubToken));

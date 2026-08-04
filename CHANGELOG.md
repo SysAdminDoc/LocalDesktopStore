@@ -2,7 +2,7 @@
 
 All notable changes to LocalDesktopStore are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project adheres to [Semantic Versioning](https://semver.org/).
 
-## Unreleased
+## v0.3.0 - 2026-08-03
 
 ### Added
 - **Authenticode verification and publisher pinning** (N6) — downloaded MSI/EXE installers must pass Windows `WinVerifyTrust` before execution. The trusted signer thumbprint and subject are stored in schema v2 of `installed.json`; a changed publisher requires explicit approval before the installer can start. Portable ZIPs retain their existing SHA-256 path and are noted as archive-level signature skips.

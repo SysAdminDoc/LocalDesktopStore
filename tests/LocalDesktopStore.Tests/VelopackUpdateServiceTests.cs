@@ -16,7 +16,7 @@ public sealed class VelopackUpdateServiceTests
         try
         {
             await File.WriteAllTextAsync(Path.Combine(root, "releases.win.json"), "{\"Assets\":[]}");
-            var locator = new TestVelopackLocator("LocalDesktopStore", "0.2.1", root);
+            var locator = new TestVelopackLocator("LocalDesktopStore", "0.3.0", root);
             var source = new SimpleFileSource(new DirectoryInfo(root));
             var manager = new UpdateManager(source, null, locator);
             var service = new VelopackUpdateService(() => manager);
