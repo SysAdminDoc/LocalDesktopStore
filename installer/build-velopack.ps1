@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [string] $Version = "0.3.0",
+    [string] $Version = "0.3.1",
     [string] $Configuration = "Release",
     [string] $Runtime = "win-x64",
     [string] $OutputRoot = "publish\velopack"

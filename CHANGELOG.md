@@ -2,6 +2,14 @@
 
 All notable changes to LocalDesktopStore are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project adheres to [Semantic Versioning](https://semver.org/).
 
+## v0.3.1 - 2026-08-12
+
+### Changed
+- Reconciled the active roadmap against the shipped implementation: update lifecycle, trust and supply-chain checks, catalog source controls, operability features, and Windows distribution paths are complete and removed from `ROADMAP.md`.
+- Kept the Avalonia cross-platform port explicitly blocked until both Linux and macOS install paths can be smoke-tested on supported hosts.
+- Refreshed the framework-dependent NuGet lockfiles after the current SDK removed stale `win-x64` runtime graphs.
+- Synchronized product metadata, release-script defaults, HTTP user-agent versions, the README badge, and the in-app version footer to `0.3.1`.
+
 ## v0.3.0 - 2026-08-03
 
 ### Added

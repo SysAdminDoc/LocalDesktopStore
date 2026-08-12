@@ -134,7 +134,7 @@ public sealed class OsvService
             BaseAddress = new Uri("https://api.osv.dev/", UriKind.Absolute),
             Timeout = TimeSpan.FromSeconds(15)
         };
-        client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("LocalDesktopStore", "0.3.0"));
+        client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("LocalDesktopStore", "0.3.1"));
         client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         return client;
     }

@@ -114,7 +114,7 @@
   <data name="Common_Clear" xml:space="preserve"><value>Clear</value></data>
   <data name="Activity_ClearAutomation" xml:space="preserve"><value>Clear activity log</value></data>
   <data name="Activity_Automation" xml:space="preserve"><value>Activity log</value></data>
-  <data name="Footer_Version" xml:space="preserve"><value>LocalDesktopStore v0.3.0</value></data>
+  <data name="Footer_Version" xml:space="preserve"><value>LocalDesktopStore v0.3.1</value></data>
   <data name="MainWindow_Badge" xml:space="preserve"><value>LDS</value></data>
   <data name="Card_Badge" xml:space="preserve"><value>APP</value></data>
   <data name="Card_AdvisoriesPrefix" xml:space="preserve"><value>Open advisories: </value></data>

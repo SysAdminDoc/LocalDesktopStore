@@ -8,7 +8,7 @@
 </h1>
 
 <p align="center">
-  <a href="https://github.com/SysAdminDoc/LocalDesktopStore/releases"><img src="https://img.shields.io/badge/version-0.3.0-cba6f7?style=for-the-badge" alt="Version" /></a>
+  <a href="https://github.com/SysAdminDoc/LocalDesktopStore/releases"><img src="https://img.shields.io/badge/version-0.3.1-cba6f7?style=for-the-badge" alt="Version" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-a6e3a1?style=for-the-badge" alt="License" /></a>
   <a href="https://github.com/SysAdminDoc/LocalDesktopStore"><img src="https://img.shields.io/badge/platform-Windows%2010%2F11-74c7ec?style=for-the-badge" alt="Platform" /></a>
   <a href="https://dotnet.microsoft.com/"><img src="https://img.shields.io/badge/.NET-9.0-512BD4?style=for-the-badge" alt=".NET" /></a>
@@ -35,7 +35,7 @@ LocalDesktopStore knows about all of those. It picks the right asset off each re
 
 ---
 
-## Features (v0.3.0)
+## Features (v0.3.1)
 
 - **GitHub-sourced discovery** — every repo whose latest release ships an MSI, NSIS / Inno EXE, portable ZIP, MSIX, or App Installer manifest appears as a card
 - **Opt-in GitHub Search discovery** — search for repos tagged `windows-app`, probe the star-sorted results for release assets, and keep them visibly separate from curated owners
@@ -90,7 +90,7 @@ Requires the [.NET 9 Desktop Runtime](https://dotnet.microsoft.com/download/dotn
 Build the two unsigned x64 packages locally after publishing the framework-dependent app:
 
 ```powershell
-pwsh -NoProfile -File installer\build.ps1 -Version 0.3.0
+pwsh -NoProfile -File installer\build.ps1 -Version 0.3.1
 ```
 
 The per-user MSI installs to `%LOCALAPPDATA%\Programs\LocalDesktopStore` without elevation. The per-machine MSI installs to `%ProgramFiles%\LocalDesktopStore` and is suitable for an elevated GPO deployment or an Intune Win32 app. Both packages are intentionally unsigned; the project never adds a code-signing step or certificate trust.
@@ -98,8 +98,8 @@ The per-user MSI installs to `%LOCALAPPDATA%\Programs\LocalDesktopStore` without
 For a silent deployment, use the package that matches the assignment scope:
 
 ```powershell
-msiexec.exe /i LocalDesktopStore-v0.3.0-per-user-x64.msi /qn /norestart
-msiexec.exe /i LocalDesktopStore-v0.3.0-per-machine-x64.msi /qn /norestart
+msiexec.exe /i LocalDesktopStore-v0.3.1-per-user-x64.msi /qn /norestart
+msiexec.exe /i LocalDesktopStore-v0.3.1-per-machine-x64.msi /qn /norestart
 ```
 
 To seed a shared GitHub owner and PAT without putting the token in a command line or plaintext JSON, provide it to the provisioning process through the `LDS_GITHUB_TOKEN` environment variable and write the machine-scope DPAPI seed under `%ProgramData%`:
@@ -245,10 +245,10 @@ Install-state detection runs as a registry diff: snapshot uninstall keys before 
 
 See [ROADMAP.md](ROADMAP.md). Highlights:
 
-- **v0.3.0** — Update lifecycle, enterprise deployment, headless CLI, localization, advisory checks, verified caching, and Velopack self-update are live.
+- **v0.3.1** — Update lifecycle, enterprise deployment, headless CLI, localization, advisory checks, verified caching, and Velopack self-update are live; the active roadmap themes are reconciled and the cross-platform port remains explicitly blocked pending macOS acceptance testing.
 - **Shipped** — Authenticode publisher pinning, per-card error/crash-log links, accessibility names/live log, WinGet manifest export, and Catppuccin Latte runtime theming.
-- **Shipped next** — scheduled background checks and bulk operations.
-- **Shipped next** — catalog import/export and MSIX / App Installer support.
+- **Shipped** — scheduled background checks and bulk operations.
+- **Shipped** — catalog import/export and MSIX / App Installer support.
 - **Shipped** — WinGet COM detection oracle with a safe registry fallback when the local WinGet server is unavailable.
 - **Shipped** — per-card post-install launch and taskbar-pin preferences.
 - **Shipped** — per-card custom installer arguments and sidecar-verified download caching.
